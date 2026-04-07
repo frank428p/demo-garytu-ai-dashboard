@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Form, Input, Button, Card, Typography, Alert } from 'antd'
 import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import axios from 'axios'
 import AppProvider from '@/components/AppProvider'
-import apiClient from '@/lib/axios'
 
 const { Title, Text } = Typography
 
@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError(null)
     setPending(true)
     try {
-      await apiClient.post('/auth/login', values)
+      await axios.post('/api/auth/login', values)
       router.push('/')
     } catch (err: unknown) {
       const message =

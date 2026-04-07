@@ -19,7 +19,7 @@ import {
   RobotOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import apiClient from "@/lib/axios";
+import axios from "axios";
 import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   async function handleLogout() {
-    await apiClient.post('/auth/logout')
+    await axios.post('/api/auth/logout')
     router.push('/login')
   }
 
