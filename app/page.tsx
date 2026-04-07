@@ -1,66 +1,72 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
 
-export default function Home() {
+import { Card, Col, Row, Statistic, Typography, Tag, Table, Progress, Space, Avatar } from "antd";
+import {
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  RobotOutlined,
+  ThunderboltOutlined,
+  DollarOutlined,
+  ApiOutlined,
+} from "@ant-design/icons";
+import AppProvider from "./components/AppProvider";
+import DashboardLayout from "./components/DashboardLayout";
+
+const { Title, Text } = Typography;
+
+const recentModels = [
+  { key: "1", name: "GPT-4o", provider: "OpenAI", requests: 12430, cost: "$245.20", status: "運行中" },
+  { key: "2", name: "Claude 3.5 Sonnet", provider: "Anthropic", requests: 8920, cost: "$178.40", status: "運行中" },
+  { key: "3", name: "Gemini 1.5 Pro", provider: "Google", requests: 4210, cost: "$84.20", status: "待機" },
+  { key: "4", name: "Llama 3.1 70B", provider: "Meta", requests: 2150, cost: "$21.50", status: "運行中" },
+];
+
+const columns = [
+  {
+    title: "模型名稱",
+    dataIndex: "name",
+    key: "name",
+    render: (name: string, record: { provider: string }) => (
+      <Space>
+        <Avatar size="small" icon={<RobotOutlined />} style={{ background: "#6366f1" }} />
+        <div>
+          <div style={{ fontWeight: 500 }}>{name}</div>
+          <Text type="secondary" style={{ fontSize: 12 }}>{record.provider}</Text>
+        </div>
+      </Space>
+    ),
+  },
+  {
+    title: "請求次數",
+    dataIndex: "requests",
+    key: "requests",
+    render: (v: number) => v.toLocaleString(),
+  },
+  {
+    title: "花費",
+    dataIndex: "cost",
+    key: "cost",
+  },
+  {
+    title: "狀態",
+    dataIndex: "status",
+    key: "status",
+    render: (status: string) => (
+      <Tag color={status === "運行中" ? "green" : "gold"}>{status}</Tag>
+    ),
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <AppProvider>
+      <DashboardLayout>
+        <Title level={4} style={{ marginBottom: 24 }}>
+          儀表板總覽
+        </Title>
+
+       
+      </DashboardLayout>
+    </AppProvider>
   );
 }
