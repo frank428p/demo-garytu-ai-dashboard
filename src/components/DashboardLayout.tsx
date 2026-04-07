@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Layout, Menu, Button, Avatar, Badge, Typography, Space, Dropdown } from "antd";
+import { Layout, Menu, Button, Avatar, Badge, Typography, Space, Dropdown, Drawer, Grid } from "antd";
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -12,6 +12,7 @@ import {
   BellOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  MenuOutlined,
   ThunderboltOutlined,
   ShoppingCartOutlined,
   CrownOutlined,
@@ -24,6 +25,7 @@ import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const menuItems: MenuProps["items"] = [
   {
@@ -96,60 +98,93 @@ const menuItems: MenuProps["items"] = [
   },
 ];
 
+const siderStyle: React.CSSProperties = {
+  background: "#1a1a2e",
+};
+
+function SiderContent({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate: (key: string) => void }) {
+  const pathname = usePathname();
+  return (
+    <>
+      <div
+        style={{
+          height: 64,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: collapsed ? "center" : "flex-start",
+          padding: collapsed ? "0" : "0 20px",
+          gap: 10,
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+        }}
+      >
+        <ThunderboltOutlined style={{ color: "#6366f1", fontSize: 22 }} />
+        {!collapsed && (
+          <Text strong style={{ color: "#fff", fontSize: 16, whiteSpace: "nowrap" }}>
+            GaryTu AI
+          </Text>
+        )}
+      </div>
+      <Menu
+        theme="dark"
+        mode="inline"
+        selectedKeys={[pathname]}
+        defaultOpenKeys={["prompt", "user", "payment", "system"]}
+        items={menuItems}
+        onClick={({ key }) => onNavigate(key)}
+        style={{ background: "transparent", borderRight: 0, marginTop: 8 }}
+      />
+    </>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
+  const screens = useBreakpoint();
+  const isMobile = !screens.md; 
 
   async function handleLogout() {
     await axios.post('/api/auth/logout')
     router.push('/login')
   }
 
+  function handleNavigate(key: string) {
+    router.push(key);
+    if (isMobile) setDrawerOpen(false);
+  }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        width={220}
-        style={{
-          background: "#1a1a2e",
-          position: "sticky",
-          top: 0,
-          height: "100vh",
-          overflow: "auto",
-        }}
-      >
-        <div
+      {!isMobile && (
+        <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          width={220}
           style={{
-            height: 64,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: collapsed ? "center" : "flex-start",
-            padding: collapsed ? "0" : "0 20px",
-            gap: 10,
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
+            ...siderStyle,
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            overflow: "auto",
           }}
         >
-          <ThunderboltOutlined style={{ color: "#6366f1", fontSize: 22 }} />
-          {!collapsed && (
-            <Text strong style={{ color: "#fff", fontSize: 16, whiteSpace: "nowrap" }}>
-              GaryTu AI
-            </Text>
-          )}
-        </div>
+          <SiderContent collapsed={collapsed} onNavigate={handleNavigate} />
+        </Sider>
+      )}
 
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[pathname]}
-          defaultOpenKeys={["prompt", "user", "payment", "system"]}
-          items={menuItems}
-          onClick={({ key }) => router.push(key)}
-          style={{ background: "transparent", borderRight: 0, marginTop: 8 }}
-        />
-      </Sider>
+      {isMobile && (
+        <Drawer
+          placement="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          size="default"
+          styles={{ body: { padding: 0, background: "#1a1a2e" }, header: { display: "none" } }}
+        >
+          <SiderContent onNavigate={handleNavigate} />
+        </Drawer>
+      )}
 
       <Layout>
         <Header
@@ -168,8 +203,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         >
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
+            icon={
+              isMobile
+                ? <MenuOutlined />
+                : collapsed
+                ? <MenuUnfoldOutlined />
+                : <MenuFoldOutlined />
+            }
+            onClick={() => isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed)}
             style={{ fontSize: 16 }}
           />
 
@@ -198,7 +239,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Space>
         </Header>
 
-        <Content style={{ margin: 24, minHeight: "calc(100vh - 112px)" }}>
+        <Content style={{ margin: isMobile ? 16 : 24, minHeight: "calc(100vh - 112px)" }}>
           {children}
         </Content>
       </Layout>

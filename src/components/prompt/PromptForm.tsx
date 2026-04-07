@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  App,
   Card,
   Form,
   Input,
@@ -12,7 +13,6 @@ import {
   Button,
   Space,
   Spin,
-  message,
 } from "antd";
 import { getPrompt, createPrompt, updatePrompt } from "@/@core/apis/prompt";
 import type { PromptFormData, MediaType } from "@/@core/types/prompt";
@@ -33,9 +33,11 @@ interface Props {
 export default function PromptForm({ id }: Props) {
   const isEdit = !!id;
   const router = useRouter();
+  const { message } = App.useApp();
   const [form] = Form.useForm<PromptFormData>();
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(isEdit);
+  const [editInitialValues, setEditInitialValues] = useState<Partial<PromptFormData> | undefined>();
 
   useEffect(() => {
     if (!isEdit) return;
@@ -44,7 +46,7 @@ export default function PromptForm({ id }: Props) {
     getPrompt(id)
       .then((res) => {
         const p = res.data;
-        form.setFieldsValue({
+        setEditInitialValues({
           name: p.name,
           description: p.description,
           media_type: p.media_type,
@@ -57,7 +59,7 @@ export default function PromptForm({ id }: Props) {
       })
       .catch(() => message.error("載入資料失敗"))
       .finally(() => setInitializing(false));
-  }, [id, isEdit, form]);
+  }, [id, isEdit]);
 
   async function handleSubmit(values: PromptFormData) {
     setLoading(true);
@@ -99,7 +101,7 @@ export default function PromptForm({ id }: Props) {
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={{ enabled: true, price: 0, bonus_credit: 0 }}
+        initialValues={editInitialValues ?? { enabled: true, price: 0, bonus_credit: 0 }}
       >
         <Form.Item label="名稱" name="name" rules={[{ required: true, message: "請輸入名稱" }]}>
           <Input placeholder="請輸入名稱" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { ConfigProvider, theme } from "antd";
+import { App, ConfigProvider, theme } from "antd";
 import zhTW from "antd/locale/zh_TW";
 
 export default function AppProvider({ children }: { children: React.ReactNode }) {
@@ -17,7 +17,7 @@ export default function AppProvider({ children }: { children: React.ReactNode })
         algorithm: theme.defaultAlgorithm,
       }}
     >
-      {children}
+      <App>{children}</App>
     </ConfigProvider>
   );
 }
