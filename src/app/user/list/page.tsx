@@ -1,8 +1,8 @@
 "use client";
 
 import { Typography } from "antd";
-import AppProvider from "@/app/components/AppProvider";
-import DashboardLayout from "@/app/components/DashboardLayout";
+import AppProvider from "@/components/AppProvider";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const { Title } = Typography;
 

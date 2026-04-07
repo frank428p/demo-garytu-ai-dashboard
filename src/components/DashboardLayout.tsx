@@ -19,7 +19,7 @@ import {
   RobotOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import { logout } from "@/app/actions/auth";
+import apiClient from "@/lib/axios";
 import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
@@ -101,6 +101,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
 
+  async function handleLogout() {
+    await apiClient.post('/auth/logout')
+    router.push('/login')
+  }
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider
@@ -178,16 +183,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   {
                     key: "logout",
                     icon: <LogoutOutlined />,
-                    label: (
-                      <form action={logout} style={{ display: "inline" }}>
-                        <button
-                          type="submit"
-                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                        >
-                          登出
-                        </button>
-                      </form>
-                    ),
+                    label: "登出",
+                    onClick: handleLogout,
                   },
                 ],
               }}

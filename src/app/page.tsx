@@ -9,8 +9,8 @@ import {
   DollarOutlined,
   ApiOutlined,
 } from "@ant-design/icons";
-import AppProvider from "./components/AppProvider";
-import DashboardLayout from "./components/DashboardLayout";
+import AppProvider from "@/components/AppProvider";
+import DashboardLayout from "@/components/DashboardLayout";
 
 const { Title, Text } = Typography;
 
@@ -62,7 +62,7 @@ export default function HomePage() {
     <AppProvider>
       <DashboardLayout>
         <Title level={4} style={{ marginBottom: 24 }}>
-          儀表板總覽
+          Overview
         </Title>
 
        
