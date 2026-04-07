@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { Layout, Menu, Button, Avatar, Badge, Typography, Space } from "antd";
 import {
   DashboardOutlined,
-  RobotOutlined,
-  BarChartOutlined,
   FileTextOutlined,
-  SettingOutlined,
+  UnorderedListOutlined,
+  FolderOutlined,
   UserOutlined,
   BellOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ThunderboltOutlined,
+  ShoppingCartOutlined,
+  CrownOutlined,
+  SettingOutlined,
+  RobotOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 
@@ -23,35 +27,77 @@ const menuItems: MenuProps["items"] = [
   {
     key: "/",
     icon: <DashboardOutlined />,
-    label: "總覽",
+    label: "Overview",
   },
   {
-    key: "/ai-models",
-    icon: <RobotOutlined />,
-    label: "AI 模型",
-  },
-  {
-    key: "/analytics",
-    icon: <BarChartOutlined />,
-    label: "數據分析",
-  },
-  {
-    key: "/reports",
+    key: "prompt",
     icon: <FileTextOutlined />,
-    label: "報告",
+    label: "Prompt",
+    children: [
+      {
+        key: "/prompt/styles",
+        icon: <FileTextOutlined />,
+        label: "Prompt Styles",
+      },
+      {
+        key: "/prompt/list",
+        icon: <UnorderedListOutlined />,
+        label: "Prompt List",
+      },
+      {
+        key: "/prompt/collections",
+        icon: <FolderOutlined />,
+        label: "Prompt Collections",
+      },
+    ],
   },
   {
-    type: "divider",
+    key: "user",
+    icon: <UserOutlined />,
+    label: "User",
+    children: [
+      {
+        key: "/user/list",
+        icon: <UnorderedListOutlined />,
+        label: "User List",
+      },
+    ],
   },
   {
-    key: "/settings",
+    key: "payment",
+    icon: <ShoppingCartOutlined />,
+    label: "Payment",
+    children: [
+      {
+        key: "/payment/prompt-orders",
+        icon: <ShoppingCartOutlined />,
+        label: "Prompt Orders",
+      },
+      {
+        key: "/payment/subscription-orders",
+        icon: <CrownOutlined />,
+        label: "Subscription Orders",
+      },
+    ],
+  },
+  {
+    key: "system",
     icon: <SettingOutlined />,
-    label: "設定",
+    label: "System",
+    children: [
+      {
+        key: "/system/ai-model-settings",
+        icon: <RobotOutlined />,
+        label: "AI Model Settings",
+      },
+    ],
   },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -90,8 +136,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={["/"]}
+          selectedKeys={[pathname]}
+          defaultOpenKeys={["prompt", "user", "payment", "system"]}
           items={menuItems}
+          onClick={({ key }) => router.push(key)}
           style={{ background: "transparent", borderRight: 0, marginTop: 8 }}
         />
       </Sider>
