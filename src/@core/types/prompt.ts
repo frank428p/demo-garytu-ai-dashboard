@@ -45,3 +45,14 @@ export interface GetPromptsParams {
   page_size?: number
   [key: string]: unknown
 }
+
+export interface PromptFormData {
+  name: string
+  description: string | null
+  media_type: MediaType
+  category_id: number
+  price: number
+  bonus_credit: number
+  enabled: boolean
+  label_codes: string[]
+}
