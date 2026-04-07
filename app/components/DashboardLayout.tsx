@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Layout, Menu, Button, Avatar, Badge, Typography, Space } from "antd";
+import { Layout, Menu, Button, Avatar, Badge, Typography, Space, Dropdown } from "antd";
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -17,7 +17,9 @@ import {
   CrownOutlined,
   SettingOutlined,
   RobotOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
+import { logout } from "@/app/actions/auth";
 import type { MenuProps } from "antd";
 
 const { Header, Sider, Content } = Layout;
@@ -170,10 +172,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Badge count={3} size="small">
               <Button type="text" icon={<BellOutlined style={{ fontSize: 18 }} />} />
             </Badge>
-            <Avatar
-              icon={<UserOutlined />}
-              style={{ background: "#6366f1", cursor: "pointer" }}
-            />
+            <Dropdown
+              menu={{
+                items: [
+                  {
+                    key: "logout",
+                    icon: <LogoutOutlined />,
+                    label: (
+                      <form action={logout} style={{ display: "inline" }}>
+                        <button
+                          type="submit"
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                        >
+                          登出
+                        </button>
+                      </form>
+                    ),
+                  },
+                ],
+              }}
+              trigger={["click"]}
+            >
+              <Avatar
+                icon={<UserOutlined />}
+                style={{ background: "#6366f1", cursor: "pointer" }}
+              />
+            </Dropdown>
           </Space>
         </Header>
 
