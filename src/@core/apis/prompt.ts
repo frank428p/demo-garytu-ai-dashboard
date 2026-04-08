@@ -29,9 +29,9 @@ export async function updatePrompt(
 }
 
 export interface UpdatePromptFilesPayload {
-  cover?: { id?: string; file_key?: string; thumbnail_key?: string };
+  cover?: { id?: string; file_key?: string; thumbnail_file_key?: string };
   pdf?: { id?: string; file_key?: string };
-  media?: Array<{ id?: string; file_key?: string; thumbnail_key?: string; position: number }>;
+  media?: Array<{ id?: string; file_key?: string; thumbnail_file_key?: string; position: number }>;
   delete_ids?: string[];
 }
 

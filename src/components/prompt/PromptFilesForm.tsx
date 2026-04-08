@@ -9,66 +9,78 @@ import type { PromptFile } from "@/@core/types/prompt";
 
 const { Text } = Typography;
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface FileItem {
+  key: string;
+  existingId?: string;
+  existingUrl?: string;
+  existingThumbnailUrl?: string | null;
+  existingFileType?: string;
+  mainFile?: UploadFile;
+  thumbnailFile?: UploadFile;
+}
+
+function fromPromptFile(f: PromptFile): FileItem {
+  return {
+    key: f.id,
+    existingId: f.id,
+    existingUrl: f.url,
+    existingThumbnailUrl: f.thumbnail_url,
+    existingFileType: f.file_type,
+  };
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+
 interface Props {
   id: string;
-}
-
-interface FilesState {
-  cover: PromptFile | null;
-  pdf: PromptFile | null;
-  media: PromptFile[];
-}
-
-interface NewMediaItem {
-  file: UploadFile;
-  thumbnail?: UploadFile;
 }
 
 export default function PromptFilesForm({ id }: Props) {
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [existing, setExisting] = useState<FilesState>({ cover: null, pdf: null, media: [] });
   const [deleteIds, setDeleteIds] = useState<string[]>([]);
 
-  // Cover
-  const [coverFile, setCoverFile] = useState<UploadFile | null>(null);
-  const [coverThumbnail, setCoverThumbnail] = useState<UploadFile | null>(null);
-
-  // PDF
+  const [coverItem, setCoverItem] = useState<FileItem | null>(null);
+  const [mediaItems, setMediaItems] = useState<FileItem[]>([]);
   const [pdfFile, setPdfFile] = useState<UploadFile | null>(null);
-
-  // New media items (each has main file + optional thumbnail)
-  const [newMediaItems, setNewMediaItems] = useState<NewMediaItem[]>([]);
+  const [existingPdf, setExistingPdf] = useState<PromptFile | null>(null);
+  const [pdfDeleted, setPdfDeleted] = useState(false);
 
   useEffect(() => {
     getPrompt(id)
       .then((res) => {
         const p = res.data;
-        setExisting({ cover: p.cover ?? null, pdf: p.pdf ?? null, media: p.files ?? [] });
+        setCoverItem(p.cover ? fromPromptFile(p.cover) : null);
+        setMediaItems((p.files ?? []).map(fromPromptFile));
+        setExistingPdf(p.pdf ?? null);
       })
       .catch(() => message.error("載入檔案資料失敗"))
       .finally(() => setInitializing(false));
   }, [id]);
 
-  function markDelete(fileId: string) {
-    setDeleteIds((prev) => [...prev, fileId]);
+  function deleteCover() {
+    if (coverItem?.existingId) setDeleteIds((prev) => [...prev, coverItem.existingId!]);
+    setCoverItem(null);
   }
 
-  function removeDeleteMark(fileId: string) {
-    setDeleteIds((prev) => prev.filter((d) => d !== fileId));
+  function deleteMedia(key: string, existingId?: string) {
+    if (existingId) setDeleteIds((prev) => [...prev, existingId]);
+    setMediaItems((prev) => prev.filter((item) => item.key !== key));
   }
 
-  function addNewMediaItem() {
-    setNewMediaItems((prev) => [...prev, { file: {} as UploadFile }]);
+  function addNewMedia() {
+    if (mediaItems.length >= 10) {
+      message.warning("媒體檔案最多 10 個");
+      return;
+    }
+    setMediaItems((prev) => [...prev, { key: `new_${Date.now()}` }]);
   }
 
-  function updateNewMediaItem(index: number, patch: Partial<NewMediaItem>) {
-    setNewMediaItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
-  }
-
-  function removeNewMediaItem(index: number) {
-    setNewMediaItems((prev) => prev.filter((_, i) => i !== index));
+  function updateMediaItem(key: string, patch: Partial<FileItem>) {
+    setMediaItems((prev) => prev.map((item) => (item.key === key ? { ...item, ...patch } : item)));
   }
 
   function fileKey(file: File) {
@@ -83,48 +95,49 @@ export default function PromptFilesForm({ id }: Props) {
         delete_ids: deleteIds.length ? deleteIds : undefined,
       };
 
-      // Cover: new upload → file_key only (no id); server removes old one automatically
-      if (coverFile?.originFileObj) {
-        files["cover"] = coverFile.originFileObj;
+      // Cover
+      if (coverItem?.mainFile?.originFileObj) {
+        files["cover"] = coverItem.mainFile.originFileObj;
         payload.cover = { file_key: "cover" };
-        if (coverThumbnail?.originFileObj) {
-          files["cover_thumbnail"] = coverThumbnail.originFileObj;
-          payload.cover.thumbnail_key = "cover_thumbnail";
+        if (coverItem.thumbnailFile?.originFileObj) {
+          files["cover_thumbnail"] = coverItem.thumbnailFile.originFileObj;
+          payload.cover.thumbnail_file_key = "cover_thumbnail";
         }
       }
-      // Cover: no update → omit
 
-      // PDF: new upload → file_key only; no update → omit
-      if (pdfFile?.originFileObj) {
+      // PDF
+      if (!pdfDeleted && pdfFile?.originFileObj) {
         const pdfKey = fileKey(pdfFile.originFileObj);
         files[pdfKey] = pdfFile.originFileObj;
         payload.pdf = { file_key: pdfKey };
       }
 
-      // Media: existing kept (id + position) + new uploads (file_key + position, no id)
-      const keptMedia = existing.media
-        .filter((f) => !deleteIds.includes(f.id))
-        .map((f, i) => ({ id: f.id, position: i }));
-
-      const uploadedNewMedia = newMediaItems
-        .filter((item) => item.file?.originFileObj)
+      // Media
+      const mediaPayload = mediaItems
         .map((item, i) => {
-          const mainKey = fileKey(item.file.originFileObj!);
-          files[mainKey] = item.file.originFileObj!;
-          const entry: { file_key: string; thumbnail_key?: string; position: number } = {
-            file_key: mainKey,
-            position: keptMedia.length + i,
-          };
-          if (item.thumbnail?.originFileObj) {
-            const thumbKey = fileKey(item.thumbnail.originFileObj);
-            files[thumbKey] = item.thumbnail.originFileObj;
-            entry.thumbnail_key = thumbKey;
+          if (item.existingId && !item.mainFile?.originFileObj) {
+            return { id: item.existingId, position: i };
           }
-          return entry;
-        });
+          if (item.mainFile?.originFileObj) {
+            const mainKey = fileKey(item.mainFile.originFileObj);
+            files[mainKey] = item.mainFile.originFileObj;
+            const entry: { file_key: string; thumbnail_file_key?: string; position: number } = {
+              file_key: mainKey,
+              position: i,
+            };
+            if (item.thumbnailFile?.originFileObj) {
+              const thumbKey = fileKey(item.thumbnailFile.originFileObj);
+              files[thumbKey] = item.thumbnailFile.originFileObj;
+              entry.thumbnail_file_key = thumbKey;
+            }
+            return entry;
+          }
+          return null;
+        })
+        .filter(Boolean);
 
-      if (keptMedia.length + uploadedNewMedia.length > 0) {
-        payload.media = [...keptMedia, ...uploadedNewMedia];
+      if (mediaPayload.length > 0) {
+        payload.media = mediaPayload as typeof payload.media;
       }
 
       const res = await updatePromptFiles(
@@ -140,12 +153,12 @@ export default function PromptFilesForm({ id }: Props) {
       message.success("檔案更新成功");
       const refreshed = await getPrompt(id);
       const p = refreshed.data;
-      setExisting({ cover: p.cover ?? null, pdf: p.pdf ?? null, media: p.files ?? [] });
+      setCoverItem(p.cover ? fromPromptFile(p.cover) : null);
+      setMediaItems((p.files ?? []).map(fromPromptFile));
+      setExistingPdf(p.pdf ?? null);
       setDeleteIds([]);
-      setCoverFile(null);
-      setCoverThumbnail(null);
       setPdfFile(null);
-      setNewMediaItems([]);
+      setPdfDeleted(false);
     } catch {
       message.error("檔案更新失敗");
     } finally {
@@ -155,196 +168,81 @@ export default function PromptFilesForm({ id }: Props) {
 
   if (initializing) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", padding: 80 }}>
+      <div className="flex justify-center p-20">
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <Card title="檔案管理" style={{ marginTop: 16 }}>
+    <Card title="檔案管理" className="mt-4">
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
           {/* ── Cover ── */}
-          <div className="pb-6">
-            <Text strong>封面媒體 (aspect ratio: 16:9)</Text>
-            <ExistingFileRow
-              file={existing.cover}
-              isDeleted={existing.cover ? deleteIds.includes(existing.cover.id) : false}
-              onDelete={() => existing.cover && markDelete(existing.cover.id)}
-              onRestore={() => existing.cover && removeDeleteMark(existing.cover.id)}
-            />
-            <div style={{ display: "flex", gap: 8, marginTop: 8, marginBottom: 16 }}>
-              <div style={{ flex: 1 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  原圖
-                </Text>
-                <Upload.Dragger
-                  accept="image/*"
-                  maxCount={1}
-                  beforeUpload={() => false}
-                  fileList={coverFile ? [coverFile] : []}
-                  onChange={({ fileList }) => setCoverFile(fileList[0] ?? null)}
-                >
-                  <InboxOutlined />
-                  <p className="ant-upload-text">封面原圖</p>
-                </Upload.Dragger>
-              </div>
-              <div style={{ flex: 1 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  縮圖
-                </Text>
-                <Upload.Dragger
-                  accept="image/*"
-                  maxCount={1}
-                  beforeUpload={() => false}
-                  fileList={coverThumbnail ? [coverThumbnail] : []}
-                  onChange={({ fileList }) => setCoverThumbnail(fileList[0] ?? null)}
-                >
-                  <InboxOutlined />
-                  <p className="ant-upload-text">封面縮圖</p>
-                </Upload.Dragger>
-              </div>
-            </div>
+          <Text strong>封面媒體 (aspect ratio: 16:9)</Text>
+          <div className="mt-2 mb-6">
+            {coverItem ? (
+              <FileCard
+                item={coverItem}
+                onDelete={deleteCover}
+                onChange={(patch) => setCoverItem((prev) => (prev ? { ...prev, ...patch } : prev))}
+              />
+            ) : (
+              <FileCard
+                item={{ key: "cover_new" }}
+                onDelete={() => setCoverItem(null)}
+                onChange={(patch) =>
+                  setCoverItem((prev) => ({ key: "cover_new", ...prev, ...patch }))
+                }
+              />
+            )}
           </div>
 
           {/* ── Media ── */}
-          <div>
-            <Text strong>媒體檔案 (aspect ratio: 1:1)</Text>
-          </div>
-          {existing.media.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "8px 0" }}>
-              {existing.media.map((f) => (
-                <div key={f.id} style={{ position: "relative" }}>
-                  <img
-                    src={f.thumbnail_url ?? f.url}
-                    alt={f.uuid}
-                    style={{
-                      width: 80,
-                      height: 80,
-                      objectFit: "cover",
-                      borderRadius: 4,
-                      opacity: deleteIds.includes(f.id) ? 0.3 : 1,
-                    }}
-                  />
-                  {deleteIds.includes(f.id) ? (
-                    <Button
-                      size="small"
-                      style={{ position: "absolute", top: 2, right: 2 }}
-                      onClick={() => removeDeleteMark(f.id)}
-                    >
-                      復原
-                    </Button>
-                  ) : (
-                    <Button
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      style={{ position: "absolute", top: 2, right: 2 }}
-                      onClick={() => markDelete(f.id)}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {newMediaItems.map((item, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                gap: 8,
-                alignItems: "flex-start",
-                marginTop: 8,
-                padding: 8,
-                border: "1px dashed #d9d9d9",
-                borderRadius: 8,
-              }}
-            >
-              <div style={{ flex: 1 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  原圖 #{i + 1}
-                </Text>
-                <Upload.Dragger
-                  maxCount={1}
-                  beforeUpload={() => false}
-                  fileList={item.file?.uid ? [item.file] : []}
-                  onChange={({ fileList }) => updateNewMediaItem(i, { file: fileList[0] })}
-                >
-                  <InboxOutlined />
-                  <p className="ant-upload-text">媒體檔案</p>
-                </Upload.Dragger>
-              </div>
-              <div style={{ flex: 1 }}>
-                <Text type="secondary" style={{ fontSize: 12 }}>
-                  縮圖 #{i + 1}（選填）
-                </Text>
-                <Upload.Dragger
-                  accept="image/*"
-                  maxCount={1}
-                  beforeUpload={() => false}
-                  fileList={item.thumbnail?.uid ? [item.thumbnail] : []}
-                  onChange={({ fileList }) => updateNewMediaItem(i, { thumbnail: fileList[0] })}
-                >
-                  <InboxOutlined />
-                  <p className="ant-upload-text">縮圖</p>
-                </Upload.Dragger>
-              </div>
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => removeNewMediaItem(i)}
-                style={{ marginTop: 20 }}
+          <Text strong>媒體檔案 (aspect ratio: 1:1)</Text>
+          <div className="mt-2 flex flex-col gap-3">
+            {mediaItems.map((item) => (
+              <FileCard
+                key={item.key}
+                item={item}
+                onDelete={() => deleteMedia(item.key, item.existingId)}
+                onChange={(patch) => updateMediaItem(item.key, patch)}
               />
-            </div>
-          ))}
-
-          <Button
-            icon={<PlusOutlined />}
-            onClick={addNewMediaItem}
-            style={{ marginTop: 8, marginBottom: 16 }}
-          >
-            新增媒體
-          </Button>
+            ))}
+            <Button icon={<PlusOutlined />} onClick={addNewMedia} disabled={mediaItems.length >= 10} className="self-start">
+              新增媒體
+            </Button>
+          </div>
         </Col>
+
         <Col xs={24} lg={12}>
           {/* ── PDF ── */}
           <Text strong>PDF 檔案</Text>
-          {existing.pdf &&
-            (deleteIds.includes(existing.pdf.id) ? (
-              <div style={{ margin: "8px 0" }}>
-                <Text type="danger">將被刪除</Text>
-                <Button
-                  size="small"
-                  style={{ marginLeft: 8 }}
-                  onClick={() => removeDeleteMark(existing.pdf!.id)}
-                >
-                  復原
-                </Button>
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0" }}>
-                <a href={existing.pdf.url} target="_blank" rel="noreferrer">
-                  {existing.pdf.uuid}
-                </a>
-                <Button
-                  size="small"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => markDelete(existing.pdf!.id)}
-                >
-                  移除
-                </Button>
-              </div>
-            ))}
+          {existingPdf && !pdfDeleted && (
+            <div className="flex items-center gap-2 my-2">
+              <a href={existingPdf.url} target="_blank" rel="noreferrer">
+                {existingPdf.uuid}
+              </a>
+              <Button
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => {
+                  setDeleteIds((prev) => [...prev, existingPdf.id]);
+                  setPdfDeleted(true);
+                }}
+              >
+                移除
+              </Button>
+            </div>
+          )}
           <Upload.Dragger
             accept=".pdf"
             maxCount={1}
             beforeUpload={() => false}
             fileList={pdfFile ? [pdfFile] : []}
             onChange={({ fileList }) => setPdfFile(fileList[0] ?? null)}
-            style={{ marginTop: 8, marginBottom: 16 }}
+            className="mt-2 mb-4"
           >
             <InboxOutlined />
             <p className="ant-upload-text">點擊或拖曳上傳 PDF</p>
@@ -352,6 +250,7 @@ export default function PromptFilesForm({ id }: Props) {
         </Col>
       </Row>
 
+      <Divider />
       <Button type="primary" loading={loading} onClick={handleSubmit}>
         儲存檔案
       </Button>
@@ -359,67 +258,124 @@ export default function PromptFilesForm({ id }: Props) {
   );
 }
 
-interface ExistingFileRowProps {
-  file: PromptFile | null;
-  isDeleted: boolean;
-  onDelete: () => void;
-  onRestore: () => void;
-  showImage?: boolean;
+// ─── FilePreview Component ───────────────────────────────────────────────────
+
+function FilePreview({ file }: { file: File }) {
+  const url = URL.createObjectURL(file);
+  const isVideo = file.type.startsWith("video");
+
+  return isVideo ? (
+    <video
+      src={url}
+      className="w-full h-auto max-h-[150px] object-contain rounded"
+      controls
+    />
+  ) : (
+    <img
+      src={url}
+      alt={file.name}
+      className="w-full h-auto max-h-[120px] object-contain rounded"
+    />
+  );
 }
 
-function ExistingFileRow({
-  file,
-  isDeleted,
-  onDelete,
-  onRestore,
-  showImage = true,
-}: ExistingFileRowProps) {
-  if (!file) return null;
+// ─── FileCard Component ───────────────────────────────────────────────────────
 
-  if (isDeleted) {
-    return (
-      <div style={{ margin: "8px 0" }}>
-        <Text type="danger">將被刪除</Text>
-        <Button size="small" style={{ marginLeft: 8 }} onClick={onRestore}>
-          復原
-        </Button>
-      </div>
-    );
-  }
-  console.log("file", file);
-  const isVideo = file.file_type?.startsWith("VIDEO");
+interface FileCardProps {
+  item: FileItem;
+  onDelete: () => void;
+  onChange: (patch: Partial<FileItem>) => void;
+}
+
+function FileCard({ item, onDelete, onChange }: FileCardProps) {
+  const isVideo = item.existingFileType?.toUpperCase().startsWith("VIDEO");
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "8px 0" }}>
-      {showImage ? (
-        isVideo ? (
-          file.thumbnail_url ? (
-            <img
-              src={file.thumbnail_url}
-              alt={file.uuid}
-              style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
-            />
+    <div className="border border-dashed border-gray-300 rounded-lg p-3">
+      <div className="flex justify-end mb-2">
+        <Button size="small" danger icon={<DeleteOutlined />} onClick={onDelete}>
+          刪除
+        </Button>
+      </div>
+      <div className="flex gap-3">
+        {/* 原圖 */}
+        <div className="flex-1 min-w-0 h-full">
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            原圖
+          </Text>
+          {item.existingUrl && !item.mainFile ? (
+            <div className="mt-1">
+              {isVideo ? (
+                <video
+                  src={item.existingUrl}
+                  className="w-full h-auto max-h-[150px] object-contain rounded"
+                  controls
+                />
+              ) : (
+                <img
+                  src={item.existingUrl}
+                  alt="原圖"
+                  className="w-full h-auto max-h-[120px] object-contain rounded"
+                />
+              )}
+            </div>
           ) : (
-            <video
-              src={file.url}
-              style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
-            />
-          )
-        ) : (
-          <img
-            src={file.thumbnail_url ?? file.url}
-            alt={file.uuid}
-            style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 4 }}
-          />
-        )
-      ) : (
-        <a href={file.url} target="_blank" rel="noreferrer">
-          {file.uuid}
-        </a>
-      )}
-      <Button size="small" danger icon={<DeleteOutlined />} onClick={onDelete}>
-        移除
-      </Button>
+            <Upload.Dragger
+              accept="image/*,video/*"
+              maxCount={1}
+              beforeUpload={() => false}
+              showUploadList={false}
+              fileList={item.mainFile?.uid ? [item.mainFile] : []}
+              onChange={({ fileList }) => onChange({ mainFile: fileList[0] ?? undefined })}
+              style={{ height: "auto" }}
+            >
+              {item.mainFile?.originFileObj ? (
+                <FilePreview file={item.mainFile.originFileObj} />
+              ) : (
+                <>
+                  <InboxOutlined />
+                  <p className="ant-upload-text">圖片 / 影片</p>
+                </>
+              )}
+            </Upload.Dragger>
+          )}
+        </div>
+
+        {/* 縮圖 */}
+        <div className="flex-1 min-w-0 h-full">
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            縮圖
+          </Text>
+          {item.existingThumbnailUrl && !item.thumbnailFile ? (
+            <div className="mt-1">
+              <img
+                src={item.existingThumbnailUrl}
+                alt="縮圖"
+                className="w-full h-auto max-h-[120px] object-contain rounded"
+              />
+            </div>
+          ) : (
+            <Upload.Dragger
+              accept="image/*"
+              maxCount={1}
+              beforeUpload={() => false}
+              showUploadList={false}
+              fileList={item.thumbnailFile?.uid ? [item.thumbnailFile] : []}
+              onChange={({ fileList }) => onChange({ thumbnailFile: fileList[0] ?? undefined })}
+              style={{ height: "auto" }}
+            >
+              {item.thumbnailFile?.originFileObj ? (
+                <FilePreview file={item.thumbnailFile.originFileObj} />
+              ) : (
+                <>
+                  <InboxOutlined />
+                  <p className="ant-upload-text">縮圖（圖片）</p>
+                </>
+              )}
+            </Upload.Dragger>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
