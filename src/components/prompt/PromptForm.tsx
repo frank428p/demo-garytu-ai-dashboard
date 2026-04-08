@@ -23,10 +23,8 @@ import type { PromptFormData, MediaType } from "@/@core/types/prompt";
 const { TextArea } = Input;
 
 const MEDIA_TYPE_OPTIONS: { label: string; value: MediaType }[] = [
-  { label: "IMAGE", value: "IMAGE" },
-  { label: "VIDEO", value: "VIDEO" },
-  { label: "AUDIO", value: "AUDIO" },
-  { label: "TEXT", value: "TEXT" },
+  { label: "Image", value: "IMAGE" },
+  { label: "Video", value: "VIDEO" },
 ];
 
 interface Props {
