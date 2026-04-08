@@ -1,58 +1,58 @@
-export type MediaType = 'IMAGE' | 'VIDEO' | 'AUDIO' | 'TEXT'
-
+export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "TEXT";
+export type FileType = "IMAGE" | "VIDEO" | "PDF";
 export interface PromptCategory {
-  id: number
-  code: string
-  name: string
+  id: number;
+  code: string;
+  name: string;
 }
 
 export interface PromptLabel {
-  code: string
-  name: string
+  code: string;
+  name: string;
 }
 
 export interface PromptFile {
-  id: string
-  uuid: string
-  category: string
-  file_type: string
-  position: number
-  url: string
-  thumbnail_url: string | null
-  created_at: string | null
+  id: string;
+  uuid: string;
+  category: string;
+  file_type: FileType;
+  position: number;
+  url: string;
+  thumbnail_url: string | null;
+  created_at: string | null;
 }
 
 export interface Prompt {
-  id: string
-  uuid: string
-  name: string
-  description: string | null
-  media_type: MediaType
-  category: PromptCategory
-  price: number
-  bonus_credit: number
-  enabled: boolean
-  created_at: string | null
-  updated_at: string | null
-  cover: PromptFile
-  pdf: PromptFile
-  files: PromptFile[]
-  labels: PromptLabel[]
+  id: string;
+  uuid: string;
+  name: string;
+  description: string | null;
+  media_type: MediaType;
+  category: PromptCategory;
+  price: number;
+  bonus_credit: number;
+  enabled: boolean;
+  created_at: string | null;
+  updated_at: string | null;
+  cover: PromptFile;
+  pdf: PromptFile;
+  files: PromptFile[];
+  labels: PromptLabel[];
 }
 
 export interface GetPromptsParams {
-  page?: number
-  page_size?: number
-  [key: string]: unknown
+  page?: number;
+  page_size?: number;
+  [key: string]: unknown;
 }
 
 export interface PromptFormData {
-  name: string
-  description: string | null
-  media_type: MediaType
-  category_id: number
-  price: number
-  bonus_credit: number
-  enabled: boolean
-  label_codes: string[]
+  name: string;
+  description: string | null;
+  media_type: MediaType;
+  category_id: number;
+  price: number;
+  bonus_credit: number;
+  enabled: boolean;
+  label_codes: string[];
 }

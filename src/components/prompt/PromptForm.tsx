@@ -6,6 +6,7 @@ import {
   App,
   Card,
   Form,
+  Grid,
   Input,
   InputNumber,
   Select,
@@ -13,6 +14,8 @@ import {
   Button,
   Space,
   Spin,
+  Row,
+  Col,
 } from "antd";
 import { getPrompt, createPrompt, updatePrompt } from "@/@core/apis/prompt";
 import type { PromptFormData, MediaType } from "@/@core/types/prompt";
@@ -33,6 +36,8 @@ interface Props {
 export default function PromptForm({ id }: Props) {
   const isEdit = !!id;
   const router = useRouter();
+  const screens = Grid.useBreakpoint();
+  const isXs = !screens.sm;
   const { message } = App.useApp();
   const [form] = Form.useForm<PromptFormData>();
   const [loading, setLoading] = useState(false);
@@ -96,13 +101,65 @@ export default function PromptForm({ id }: Props) {
   }
 
   return (
-    <Card style={{ maxWidth: 720 }}>
+    <Card title="基礎設定">
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
         initialValues={editInitialValues ?? { enabled: true, price: 0, bonus_credit: 0 }}
       >
+        {isXs && (
+          <Form.Item label="啟用" name="enabled" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+        )}
+
+        <Row gutter={16}>
+          <Col xs={24} sm={5}>
+            <Form.Item
+              label="媒體類型"
+              name="media_type"
+              rules={[{ required: true, message: "請選擇媒體類型" }]}
+            >
+              <Select options={MEDIA_TYPE_OPTIONS} placeholder="請選擇媒體類型" />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={5}>
+            <Form.Item
+              label="分類 ID"
+              name="category_id"
+              rules={[{ required: true, message: "請輸入分類 ID" }]}
+            >
+              <InputNumber style={{ width: "100%" }} min={1} placeholder="請輸入分類 ID" />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={5}>
+            <Form.Item
+              label="價格"
+              name="price"
+              rules={[{ required: true, message: "請輸入價格" }]}
+            >
+              <InputNumber style={{ width: "100%" }} min={0} />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={5}>
+            <Form.Item label="贈送點數" name="bonus_credit">
+              <InputNumber style={{ width: "100%" }} min={0} />
+            </Form.Item>
+          </Col>
+
+          {!isXs && (
+            <Col sm={4}>
+              <Form.Item label="啟用" name="enabled" valuePropName="checked">
+                <Switch />
+              </Form.Item>
+            </Col>
+          )}
+        </Row>
+
         <Form.Item label="名稱" name="name" rules={[{ required: true, message: "請輸入名稱" }]}>
           <Input placeholder="請輸入名稱" />
         </Form.Item>
@@ -111,29 +168,9 @@ export default function PromptForm({ id }: Props) {
           <TextArea autoSize={{ minRows: 4 }} placeholder="請輸入描述" />
         </Form.Item>
 
-        <Form.Item label="媒體類型" name="media_type" rules={[{ required: true, message: "請選擇媒體類型" }]}>
-          <Select options={MEDIA_TYPE_OPTIONS} placeholder="請選擇媒體類型" />
-        </Form.Item>
-
-        <Form.Item label="分類 ID" name="category_id" rules={[{ required: true, message: "請輸入分類 ID" }]}>
-          <InputNumber style={{ width: "100%" }} min={1} placeholder="請輸入分類 ID" />
-        </Form.Item>
-
-        <Form.Item label="價格" name="price" rules={[{ required: true, message: "請輸入價格" }]}>
-          <InputNumber style={{ width: "100%" }} min={0} />
-        </Form.Item>
-
-        <Form.Item label="贈送點數" name="bonus_credit">
-          <InputNumber style={{ width: "100%" }} min={0} />
-        </Form.Item>
-
         {/* <Form.Item label="標籤代碼" name="label_codes">
           <Select mode="tags" placeholder="輸入標籤代碼後按 Enter" />
         </Form.Item> */}
-
-        <Form.Item label="啟用" name="enabled" valuePropName="checked">
-          <Switch />
-        </Form.Item>
 
         <Form.Item style={{ marginBottom: 0 }}>
           <Space>
