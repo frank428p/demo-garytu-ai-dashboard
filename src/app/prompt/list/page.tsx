@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Table, Tag, Switch, Typography, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
@@ -20,6 +21,22 @@ export default function PromptListPage() {
   const [loading, setLoading] = useState(false);
 
   const columns: TableProps<Prompt>["columns"] = [
+    {
+      title: "封面",
+      key: "cover",
+      width: 120,
+      render: (_: unknown, record: Prompt) =>
+        record.cover?.thumbnail_url ? (
+          <div style={{ height: 60, aspectRatio: "16/9", position: "relative", borderRadius: 4, overflow: "hidden" }}>
+            <Image
+              src={record.cover.thumbnail_url}
+              alt="封面"
+              fill
+              style={{ objectFit: "cover" }}
+            />
+          </div>
+        ) : null,
+    },
     {
       title: "名稱",
       dataIndex: "name",

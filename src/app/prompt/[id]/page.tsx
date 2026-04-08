@@ -16,8 +16,10 @@ export default function PromptDetailPage({ params }: { params: Promise<{ id: str
     <AppProvider>
       <DashboardLayout>
         <Title level={4}>編輯 Prompt</Title>
-        <PromptForm id={id} />
-        <PromptFilesForm id={id} />
+        <div className="flex flex-col gap-6">
+          <PromptForm id={id} />
+          <PromptFilesForm id={id} />
+        </div>
       </DashboardLayout>
     </AppProvider>
   );

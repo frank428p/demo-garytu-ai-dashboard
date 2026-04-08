@@ -177,7 +177,7 @@ export default function PromptForm({ id }: Props) {
             <Button type="primary" htmlType="submit" loading={loading}>
               {isEdit ? "儲存" : "新增"}
             </Button>
-            <Button onClick={() => router.push("/prompt/list")}>取消</Button>
+            {/* <Button onClick={() => router.push("/prompt/list")}>取消</Button> */}
           </Space>
         </Form.Item>
       </Form>

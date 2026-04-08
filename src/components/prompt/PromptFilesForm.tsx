@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DragDropProvider } from "@dnd-kit/react";
+import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { App, Button, Card, Divider, Spin, Upload, Typography, Row, Col } from "antd";
 import { InboxOutlined, DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd";
@@ -179,7 +181,10 @@ export default function PromptFilesForm({ id }: Props) {
       <Row gutter={[24, 24]}>
         <Col xs={24} lg={12}>
           {/* ── Cover ── */}
-          <Text strong>封面媒體 (aspect ratio: 16:9)</Text>
+          <div className="pb-2">
+            <Text strong>封面媒體 (aspect ratio: 16:9)</Text>
+          </div>
+
           <div className="mt-2 mb-6">
             {coverItem ? (
               <FileCard
@@ -199,25 +204,53 @@ export default function PromptFilesForm({ id }: Props) {
           </div>
 
           {/* ── Media ── */}
-          <Text strong>媒體檔案 (aspect ratio: 1:1)</Text>
-          <div className="mt-2 flex flex-col gap-3">
-            {mediaItems.map((item) => (
-              <FileCard
-                key={item.key}
-                item={item}
-                onDelete={() => deleteMedia(item.key, item.existingId)}
-                onChange={(patch) => updateMediaItem(item.key, patch)}
-              />
-            ))}
-            <Button icon={<PlusOutlined />} onClick={addNewMedia} disabled={mediaItems.length >= 10} className="self-start">
-              新增媒體
-            </Button>
+          <div className="pb-2">
+            <Text strong>媒體檔案 (aspect ratio: 1:1)</Text>
           </div>
+
+          <DragDropProvider
+            onDragEnd={({ operation, canceled }) => {
+              if (canceled) return;
+              if (!isSortableOperation(operation)) return;
+              const { source, target } = operation;
+              if (!source || !target) return;
+              const from = source.sortable.initialIndex;
+              const to = target.sortable.index;
+              if (from === to) return;
+              setMediaItems((prev) => {
+                const next = [...prev];
+                next.splice(to < 0 ? next.length + to : to, 0, next.splice(from, 1)[0]);
+                return next;
+              });
+            }}
+          >
+            <div className="mt-2 flex flex-col gap-3">
+              {mediaItems.map((item, index) => (
+                <SortableFileCard
+                  key={item.key}
+                  item={item}
+                  index={index}
+                  onDelete={() => deleteMedia(item.key, item.existingId)}
+                  onChange={(patch) => updateMediaItem(item.key, patch)}
+                />
+              ))}
+              <Button
+                icon={<PlusOutlined />}
+                onClick={addNewMedia}
+                disabled={mediaItems.length >= 10}
+                className="self-start"
+              >
+                新增媒體
+              </Button>
+            </div>
+          </DragDropProvider>
         </Col>
 
         <Col xs={24} lg={12}>
           {/* ── PDF ── */}
-          <Text strong>PDF 檔案</Text>
+          <div className="pb-2">
+            <Text strong>PDF 檔案</Text>
+          </div>
           {existingPdf && !pdfDeleted && (
             <div className="flex items-center gap-2 my-2">
               <a href={existingPdf.url} target="_blank" rel="noreferrer">
@@ -236,7 +269,7 @@ export default function PromptFilesForm({ id }: Props) {
               </Button>
             </div>
           )}
-          <Upload.Dragger
+          <Upload
             accept=".pdf"
             maxCount={1}
             beforeUpload={() => false}
@@ -244,9 +277,8 @@ export default function PromptFilesForm({ id }: Props) {
             onChange={({ fileList }) => setPdfFile(fileList[0] ?? null)}
             className="mt-2 mb-4"
           >
-            <InboxOutlined />
-            <p className="ant-upload-text">點擊或拖曳上傳 PDF</p>
-          </Upload.Dragger>
+            <Button icon={<PlusOutlined />}>選擇 PDF 檔案</Button>
+          </Upload>
         </Col>
       </Row>
 
@@ -265,17 +297,25 @@ function FilePreview({ file }: { file: File }) {
   const isVideo = file.type.startsWith("video");
 
   return isVideo ? (
-    <video
-      src={url}
-      className="w-full h-auto max-h-[150px] object-contain rounded"
-      controls
-    />
+    <video src={url} className="w-full h-auto max-h-[150px] object-contain rounded" controls />
   ) : (
-    <img
-      src={url}
-      alt={file.name}
-      className="w-full h-auto max-h-[120px] object-contain rounded"
-    />
+    <img src={url} alt={file.name} className="w-full h-auto max-h-[120px] object-contain rounded" />
+  );
+}
+
+// ─── SortableFileCard Component ──────────────────────────────────────────────
+
+interface SortableFileCardProps extends FileCardProps {
+  index: number;
+}
+
+function SortableFileCard({ item, index, onDelete, onChange }: SortableFileCardProps) {
+  const { ref, isDragSource } = useSortable({ id: item.key, index });
+
+  return (
+    <div ref={ref} style={{ opacity: isDragSource ? 0.4 : 1, cursor: "grab" }}>
+      <FileCard item={item} onDelete={onDelete} onChange={onChange} />
+    </div>
   );
 }
 
