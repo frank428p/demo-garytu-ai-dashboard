@@ -3,6 +3,23 @@ import type { ApiResponse, ApiMeta } from "@/@core/types/apiConfig";
 import type { Prompt, PromptFile, GetPromptsParams, PromptFormData } from "@/@core/types/prompt";
 
 export type PromptListResponse = ApiResponse<Prompt[]> & { meta: ApiMeta };
+export type FeaturedPromptListResponse = ApiResponse<Prompt[]> & { meta: ApiMeta };
+export type FeaturedPromptUpdateResponse = ApiResponse<Prompt[]>;
+
+export interface GetFeaturedPromptsParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+}
+
+export interface FeaturedPromptItem {
+  id: number;
+  rank: number;
+}
+
+export interface UpdateFeaturedPromptsPayload {
+  items: FeaturedPromptItem[];
+}
 export type PromptResponse = ApiResponse<Prompt>;
 
 export async function getPrompts(params?: GetPromptsParams): Promise<PromptListResponse> {
@@ -25,6 +42,25 @@ export async function updatePrompt(
   data: Partial<PromptFormData>
 ): Promise<PromptResponse> {
   const response = await apiClient.patch<PromptResponse>(`/cms/prompts/${id}`, data);
+  return response.data;
+}
+
+export async function getFeaturedPrompts(
+  params?: GetFeaturedPromptsParams
+): Promise<FeaturedPromptListResponse> {
+  const response = await apiClient.get<FeaturedPromptListResponse>("/cms/prompts/featured", {
+    params,
+  });
+  return response.data;
+}
+
+export async function updateFeaturedPrompts(
+  payload: UpdateFeaturedPromptsPayload
+): Promise<FeaturedPromptUpdateResponse> {
+  const response = await apiClient.patch<FeaturedPromptUpdateResponse>(
+    "/cms/prompts/featured",
+    payload
+  );
   return response.data;
 }
 
