@@ -1,3 +1,5 @@
+import { Locale } from "./common";
+
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "TEXT";
 export type FileType = "IMAGE" | "VIDEO" | "PDF";
 export interface PromptCategory {
@@ -22,11 +24,18 @@ export interface PromptFile {
   created_at: string | null;
 }
 
+export interface PromptTranslation {
+  locale: Locale;
+  name: string;
+  description: string;
+}
+
 export interface Prompt {
   id: string;
   uuid: string;
-  name: string;
-  description: string | null;
+  // name: string;
+  // description: string | null;
+  translations: PromptTranslation[];
   media_type: MediaType;
   category: PromptCategory;
   price: number;
@@ -47,8 +56,7 @@ export interface GetPromptsParams {
 }
 
 export interface PromptFormData {
-  name: string;
-  description: string | null;
+  translations: PromptTranslation[];
   media_type: MediaType;
   category_id: number;
   price: number;

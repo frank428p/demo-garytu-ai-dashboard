@@ -34,7 +34,7 @@ function SortableRow({ prompt, index, onRemove }: SortableRowProps) {
       <Avatar shape="square" size={48} src={prompt.cover?.thumbnail_url} className="shrink-0" />
       <div className="flex-1 min-w-0">
         <Text strong className="block truncate">
-          {prompt.name}
+          {prompt.translations.find((t) => t.locale === "zh-TW")?.name ?? "-"}
         </Text>
         <Text type="secondary" className="text-xs">
           ID: {prompt.id}

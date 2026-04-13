@@ -16,15 +16,29 @@ import {
   Spin,
   Row,
   Col,
+  Divider,
+  Typography,
 } from "antd";
 import { getPrompt, createPrompt, updatePrompt } from "@/@core/apis/prompt";
 import type { PromptFormData, MediaType } from "@/@core/types/prompt";
+import type { Locale } from "@/@core/types/common";
 
 const { TextArea } = Input;
+const { Text } = Typography;
 
 const MEDIA_TYPE_OPTIONS: { label: string; value: MediaType }[] = [
   { label: "Image", value: "IMAGE" },
   { label: "Video", value: "VIDEO" },
+];
+
+const LOCALES: { label: string; value: Locale; index: number }[] = [
+  { label: "繁體中文", value: "zh-TW", index: 0 },
+  { label: "English", value: "en", index: 1 },
+];
+
+const DEFAULT_TRANSLATIONS: PromptFormData["translations"] = [
+  { locale: "zh-TW", name: "", description: "" },
+  { locale: "en", name: "", description: "" },
 ];
 
 interface Props {
@@ -49,15 +63,17 @@ export default function PromptForm({ id }: Props) {
     getPrompt(id)
       .then((res) => {
         const p = res.data;
+        const translations = DEFAULT_TRANSLATIONS.map((t) => {
+          const found = p.translations.find((et) => et.locale === t.locale);
+          return found ?? t;
+        });
         setEditInitialValues({
-          name: p.name,
-          description: p.description,
+          translations,
           media_type: p.media_type,
           category_id: p.category.id,
           price: p.price,
           bonus_credit: p.bonus_credit,
           enabled: p.enabled,
-          // label_codes: p.labels.map((l) => l.code),
         });
       })
       .catch(() => message.error("載入資料失敗"))
@@ -104,7 +120,14 @@ export default function PromptForm({ id }: Props) {
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={editInitialValues ?? { enabled: true, price: 0, bonus_credit: 0 }}
+        initialValues={
+          editInitialValues ?? {
+            translations: DEFAULT_TRANSLATIONS,
+            enabled: true,
+            price: 0,
+            bonus_credit: 0,
+          }
+        }
       >
         {isXs && (
           <Form.Item label="啟用" name="enabled" valuePropName="checked">
@@ -158,13 +181,34 @@ export default function PromptForm({ id }: Props) {
           )}
         </Row>
 
-        <Form.Item label="名稱" name="name" rules={[{ required: true, message: "請輸入名稱" }]}>
-          <Input placeholder="請輸入名稱" />
-        </Form.Item>
+        <Divider />
 
-        <Form.Item label="描述" name="description">
-          <TextArea autoSize={{ minRows: 4 }} placeholder="請輸入描述" />
-        </Form.Item>
+        {LOCALES.map(({ label, value, index }) => (
+          <div key={value}>
+            <Text strong className="block mb-3">
+              {label} ({value})
+            </Text>
+
+            {/* hidden local field */}
+            <Form.Item name={["translations", index, "locale"]} hidden>
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              label="名稱"
+              name={["translations", index, "name"]}
+              rules={[{ required: true, message: `請輸入${label}名稱` }]}
+            >
+              <Input placeholder={`請輸入${label}名稱`} />
+            </Form.Item>
+
+            <Form.Item label="描述" name={["translations", index, "description"]}>
+              <TextArea autoSize={{ minRows: 4 }} placeholder={`請輸入${label}描述`} />
+            </Form.Item>
+
+            {index < LOCALES.length - 1 && <Divider dashed />}
+          </div>
+        ))}
 
         {/* <Form.Item label="標籤代碼" name="label_codes">
           <Select mode="tags" placeholder="輸入標籤代碼後按 Enter" />

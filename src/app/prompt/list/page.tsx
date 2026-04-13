@@ -27,7 +27,15 @@ export default function PromptListPage() {
       width: 120,
       render: (_: unknown, record: Prompt) =>
         record.cover?.thumbnail_url ? (
-          <div style={{ height: 60, aspectRatio: "16/9", position: "relative", borderRadius: 4, overflow: "hidden" }}>
+          <div
+            style={{
+              height: 60,
+              aspectRatio: "16/9",
+              position: "relative",
+              borderRadius: 4,
+              overflow: "hidden",
+            }}
+          >
             <Image
               src={record.cover.thumbnail_url}
               alt="封面"
@@ -39,8 +47,9 @@ export default function PromptListPage() {
     },
     {
       title: "名稱",
-      dataIndex: "name",
       key: "name",
+      render: (_: unknown, record: Prompt) =>
+        record.translations.find((t) => t.locale === "zh-TW")?.name ?? "-",
     },
     {
       title: "類型",
@@ -62,8 +71,7 @@ export default function PromptListPage() {
       title: "標籤",
       dataIndex: "labels",
       key: "labels",
-      render: (labels: Prompt["labels"]) =>
-        labels.map((l) => <Tag key={l.code}>{l.name}</Tag>),
+      render: (labels: Prompt["labels"]) => labels.map((l) => <Tag key={l.code}>{l.name}</Tag>),
     },
     {
       title: "啟用",
@@ -91,8 +99,17 @@ export default function PromptListPage() {
   return (
     <AppProvider>
       <DashboardLayout>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <Title level={4} style={{ margin: 0 }}>Prompt List</Title>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <Title level={4} style={{ margin: 0 }}>
+            Prompt List
+          </Title>
           <Button
             type="primary"
             icon={<PlusOutlined />}
