@@ -50,6 +50,9 @@ export default function PromptFilesForm({ id }: Props) {
   const [pdfFile, setPdfFile] = useState<UploadFile | null>(null);
   const [existingPdf, setExistingPdf] = useState<PromptFile | null>(null);
   const [pdfDeleted, setPdfDeleted] = useState(false);
+  const [zipFile, setZipFile] = useState<UploadFile | null>(null);
+  const [existingZip, setExistingZip] = useState<PromptFile | null>(null);
+  const [zipDeleted, setZipDeleted] = useState(false);
 
   useEffect(() => {
     getPrompt(id)
@@ -58,6 +61,7 @@ export default function PromptFilesForm({ id }: Props) {
         setCoverItem(p.cover ? fromPromptFile(p.cover) : null);
         setMediaItems((p.files ?? []).map(fromPromptFile));
         setExistingPdf(p.pdf ?? null);
+        setExistingZip(p.zip ?? null);
       })
       .catch(() => message.error("載入檔案資料失敗"))
       .finally(() => setInitializing(false));
@@ -114,6 +118,13 @@ export default function PromptFilesForm({ id }: Props) {
         payload.pdf = { file_key: pdfKey };
       }
 
+      // ZIP
+      if (!zipDeleted && zipFile?.originFileObj) {
+        const zipKey = fileKey(zipFile.originFileObj);
+        files[zipKey] = zipFile.originFileObj;
+        payload.zip = { file_key: zipKey };
+      }
+
       // Media
       const mediaPayload = mediaItems
         .map((item, i) => {
@@ -158,9 +169,12 @@ export default function PromptFilesForm({ id }: Props) {
       setCoverItem(p.cover ? fromPromptFile(p.cover) : null);
       setMediaItems((p.files ?? []).map(fromPromptFile));
       setExistingPdf(p.pdf ?? null);
+      setExistingZip(p.zip ?? null);
       setDeleteIds([]);
       setPdfFile(null);
       setPdfDeleted(false);
+      setZipFile(null);
+      setZipDeleted(false);
     } catch {
       message.error("檔案更新失敗");
     } finally {
@@ -248,21 +262,56 @@ export default function PromptFilesForm({ id }: Props) {
 
         <Col xs={24} lg={12}>
           {/* ── PDF ── */}
-          <div className="pb-2">
-            <Text strong>PDF 檔案</Text>
+          <div className="pb-4">
+            <div className="pb-2">
+              <Text strong>PDF 檔案</Text>
+            </div>
+            {existingPdf && !pdfDeleted && (
+              <div className="flex items-center gap-2 my-2">
+                <a href={existingPdf.url} target="_blank" rel="noreferrer">
+                  {existingPdf.uuid}
+                </a>
+                <Button
+                  size="small"
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={() => {
+                    setDeleteIds((prev) => [...prev, existingPdf.id]);
+                    setPdfDeleted(true);
+                  }}
+                >
+                  移除
+                </Button>
+              </div>
+            )}
+            <Upload
+              accept=".pdf"
+              maxCount={1}
+              beforeUpload={() => false}
+              fileList={pdfFile ? [pdfFile] : []}
+              onChange={({ fileList }) => setPdfFile(fileList[0] ?? null)}
+              className="mt-2 mb-4"
+            >
+              <Button icon={<PlusOutlined />}>選擇 PDF 檔案</Button>
+            </Upload>
           </div>
-          {existingPdf && !pdfDeleted && (
+
+          {/* ── ZIP ── */}
+          <div className="pb-2">
+            <Text strong>ZIP 檔案</Text>
+          </div>
+          {existingZip && !zipDeleted && (
             <div className="flex items-center gap-2 my-2">
-              <a href={existingPdf.url} target="_blank" rel="noreferrer">
-                {existingPdf.uuid}
+              <a href={existingZip.url} target="_blank" rel="noreferrer">
+                {existingZip.uuid}
               </a>
               <Button
                 size="small"
                 danger
                 icon={<DeleteOutlined />}
                 onClick={() => {
-                  setDeleteIds((prev) => [...prev, existingPdf.id]);
-                  setPdfDeleted(true);
+                  setDeleteIds((prev) => [...prev, existingZip.id]);
+                  setZipDeleted(true);
                 }}
               >
                 移除
@@ -270,14 +319,14 @@ export default function PromptFilesForm({ id }: Props) {
             </div>
           )}
           <Upload
-            accept=".pdf"
+            accept=".zip"
             maxCount={1}
             beforeUpload={() => false}
-            fileList={pdfFile ? [pdfFile] : []}
-            onChange={({ fileList }) => setPdfFile(fileList[0] ?? null)}
+            fileList={zipFile ? [zipFile] : []}
+            onChange={({ fileList }) => setZipFile(fileList[0] ?? null)}
             className="mt-2 mb-4"
           >
-            <Button icon={<PlusOutlined />}>選擇 PDF 檔案</Button>
+            <Button icon={<PlusOutlined />}>選擇 ZIP 檔案</Button>
           </Upload>
         </Col>
       </Row>

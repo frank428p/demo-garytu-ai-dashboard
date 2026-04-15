@@ -1,7 +1,7 @@
 import { Locale } from "./common";
 
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "TEXT";
-export type FileType = "IMAGE" | "VIDEO" | "PDF";
+export type FileType = "IMAGE" | "VIDEO" | "PDF" | "ZIP";
 export interface PromptCategory {
   id: number;
   code: string;
@@ -45,6 +45,7 @@ export interface Prompt {
   updated_at: string | null;
   cover: PromptFile;
   pdf: PromptFile;
+  zip: PromptFile;
   files: PromptFile[];
   labels: PromptLabel[];
 }

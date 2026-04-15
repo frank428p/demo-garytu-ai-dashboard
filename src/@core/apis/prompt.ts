@@ -67,6 +67,7 @@ export async function updateFeaturedPrompts(
 export interface UpdatePromptFilesPayload {
   cover?: { id?: string; file_key?: string; thumbnail_file_key?: string };
   pdf?: { id?: string; file_key?: string };
+  zip?: { id?: string; file_key?: string };
   media?: Array<{ id?: string; file_key?: string; thumbnail_file_key?: string; position: number }>;
   delete_ids?: string[];
 }
@@ -74,6 +75,7 @@ export interface UpdatePromptFilesPayload {
 export type PromptFilesResponse = ApiResponse<{
   cover: PromptFile | null;
   pdf: PromptFile | null;
+  zip: PromptFile | null;
   media: PromptFile[];
 }>;
 
