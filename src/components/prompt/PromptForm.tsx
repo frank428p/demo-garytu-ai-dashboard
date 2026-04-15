@@ -150,7 +150,7 @@ export default function PromptForm({ id }: Props) {
             <Form.Item
               label="分類 ID"
               name="category_id"
-              rules={[{ required: true, message: "請輸入分類 ID" }]}
+              rules={[{ required: false, message: "請輸入分類 ID" }]}
             >
               <InputNumber style={{ width: "100%" }} min={1} placeholder="請輸入分類 ID" />
             </Form.Item>

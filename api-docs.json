@@ -1,0 +1,2273 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/tests/stripe/session/{id}": {
+      "get": {
+        "operationId": "TestController_getStripeSession",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Test"]
+      }
+    },
+    "/tests/s3-buckets": {
+      "get": {
+        "operationId": "TestController_listS3Buckets",
+        "parameters": [],
+        "responses": { "200": { "description": "" } },
+        "tags": ["Test"]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_emailRegistration",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmailRegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Register by email",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/register/verify": {
+      "post": {
+        "operationId": "AuthController_verifyEmailRegistration",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmailRegisterVerifyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify email registration",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/LoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/AuthLoginResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login by email",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/login/google": {
+      "post": {
+        "operationId": "AuthController_googleLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/GoogleLoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/AuthLoginResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Login by Google",
+        "tags": ["Auth"]
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "UserController_getMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/UserInfoResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Get current logged-in user info",
+        "tags": ["User"]
+      },
+      "patch": {
+        "operationId": "UserController_updateMe",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateUserInfoRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/UserInfoResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Update current user info",
+        "tags": ["User"]
+      }
+    },
+    "/prompts": {
+      "get": {
+        "operationId": "PromptController_listPrompts",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search prompt name or description",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "media_type",
+            "required": false,
+            "in": "query",
+            "description": "Prompt media type",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Filter by category code",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/PromptResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "List prompts",
+        "tags": ["Prompt"]
+      }
+    },
+    "/prompts/featured": {
+      "get": {
+        "operationId": "PromptController_listFeaturedPrompts",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/PromptResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "List featured prompts",
+        "tags": ["Prompt"]
+      }
+    },
+    "/prompts/favorites": {
+      "get": {
+        "operationId": "PromptController_listFavorites",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/PromptResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "List user favorite prompts",
+        "tags": ["Prompt"]
+      }
+    },
+    "/prompts/purchased": {
+      "get": {
+        "operationId": "PromptController_listPurchased",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/PromptResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "List user purchased prompts",
+        "tags": ["Prompt"]
+      }
+    },
+    "/prompts/{uuid}/favorite": {
+      "post": {
+        "operationId": "PromptController_addFavorite",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "tags": ["Prompt"]
+      },
+      "delete": {
+        "operationId": "PromptController_removeFavorite",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "tags": ["Prompt"]
+      }
+    },
+    "/prompts/{uuid}": {
+      "get": {
+        "operationId": "PromptController_getPrompt",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/PromptResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Get prompt by UUID",
+        "tags": ["Prompt"]
+      }
+    },
+    "/cms/prompts": {
+      "get": {
+        "operationId": "PromptCmsController_listPrompts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search name or description",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsPromptDetailResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List prompts",
+        "tags": ["CMS Prompts"]
+      },
+      "post": {
+        "operationId": "PromptCmsController_createPrompt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminCreatePromptRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/CmsPromptResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Create prompt",
+        "tags": ["CMS Prompts"]
+      }
+    },
+    "/cms/prompts/featured": {
+      "get": {
+        "operationId": "PromptCmsController_listFeaturedPrompts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search name or description",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsPromptDetailResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List featured prompts",
+        "tags": ["CMS Prompts"]
+      },
+      "patch": {
+        "operationId": "PromptCmsController_updateFeaturedPrompts",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CmsUpdateFeaturedPromptsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsPromptResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update featured prompts",
+        "tags": ["CMS Prompts"]
+      }
+    },
+    "/cms/prompts/{id}": {
+      "patch": {
+        "operationId": "PromptCmsController_updatePrompt",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminUpdatePromptRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/CmsPromptResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update prompt",
+        "tags": ["CMS Prompts"]
+      },
+      "get": {
+        "operationId": "PromptCmsController_getPrompt",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsPromptDetailResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get prompt by id",
+        "tags": ["CMS Prompts"]
+      }
+    },
+    "/cms/prompts/{id}/files": {
+      "patch": {
+        "operationId": "PromptCmsController_updatePromptFiles",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "description": "JSON string. Please refer to CmsUpdatePromptFilesPayloadRequest schema. For newly uploaded files, provide file_key and/or thumbnail_file_key that matches the multipart form-data field name. To keep an existing file, provide id only or omit that field entirely.",
+                    "example": "{\n  \"cover\": {\n    \"id\": 10,\n    \"file_key\": \"cover_file\",\n    \"thumbnail_file_key\": \"cover_thumb\"\n  },\n  \"pdf\": {\n    \"file_key\": \"pdf_file\"\n  },\n  \"zip\": {\n    \"file_key\": \"zip_file\"\n  },\n  \"media\": [\n    {\n      \"id\": 21,\n      \"position\": 0\n    },\n    {\n      \"file_key\": \"media_new_1\",\n      \"thumbnail_file_key\": \"media_new_1_thumb\",\n      \"position\": 1\n    }\n  ],\n  \"delete_ids\": [\n    \"33\"\n  ]\n}"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsPromptFilesResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update prompt files",
+        "tags": ["CMS Prompts"]
+      }
+    },
+    "/cms/files/test-upload/public": {
+      "post": {
+        "operationId": "FileCmsController_uploadPublicFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": { "file": { "type": "string", "format": "binary" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminTestUploadResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Test upload file to public bucket",
+        "tags": ["CMS Files"]
+      }
+    },
+    "/cms/files/test-upload/private": {
+      "post": {
+        "operationId": "FileCmsController_uploadPrivateFile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": { "file": { "type": "string", "format": "binary" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminTestUploadResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Test upload file to private bucket",
+        "tags": ["CMS Files"]
+      }
+    },
+    "/files/{uuid}": {
+      "get": {
+        "operationId": "FileController_downloadPromptFile",
+        "parameters": [
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "" } },
+        "security": [{ "user-token": [] }],
+        "summary": "Download purchased prompt file by file UUID",
+        "tags": ["Files"]
+      }
+    },
+    "/web/config": {
+      "get": {
+        "operationId": "WebController_getConfig",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/WebConfigResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get web config",
+        "tags": ["Web"]
+      }
+    },
+    "/cms/categories": {
+      "get": {
+        "operationId": "CategoryCmsController_listCategories",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search category code or name",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AdminCategoryResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List categories",
+        "tags": ["CMS Categories"]
+      },
+      "post": {
+        "operationId": "CategoryCmsController_createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminCreateCategoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminCategoryResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Create category",
+        "tags": ["CMS Categories"]
+      }
+    },
+    "/cms/categories/enabled": {
+      "get": {
+        "operationId": "CategoryCmsController_listEnabledCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AdminCategoryResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List enabled categories",
+        "tags": ["CMS Categories"]
+      }
+    },
+    "/cms/categories/{id}": {
+      "get": {
+        "operationId": "CategoryCmsController_getCategory",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminCategoryResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get category by id",
+        "tags": ["CMS Categories"]
+      },
+      "patch": {
+        "operationId": "CategoryCmsController_updateCategory",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminUpdateCategoryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminCategoryResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update category",
+        "tags": ["CMS Categories"]
+      },
+      "delete": {
+        "operationId": "CategoryCmsController_deleteCategory",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Delete category",
+        "tags": ["CMS Categories"]
+      }
+    },
+    "/cms/labels": {
+      "get": {
+        "operationId": "LabelCmsController_listLabels",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search label code or name",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AdminLabelResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List labels",
+        "tags": ["CMS Labels"]
+      },
+      "post": {
+        "operationId": "LabelCmsController_createLabel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminCreateLabelRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminLabelResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Create label",
+        "tags": ["CMS Labels"]
+      }
+    },
+    "/cms/labels/enabled": {
+      "get": {
+        "operationId": "LabelCmsController_listEnabledLabels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AdminLabelResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List enabled labels",
+        "tags": ["CMS Labels"]
+      }
+    },
+    "/cms/labels/{id}": {
+      "get": {
+        "operationId": "LabelCmsController_getLabel",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminLabelResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get label by id",
+        "tags": ["CMS Labels"]
+      },
+      "patch": {
+        "operationId": "LabelCmsController_updateLabel",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminUpdateLabelRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminLabelResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update label",
+        "tags": ["CMS Labels"]
+      },
+      "delete": {
+        "operationId": "LabelCmsController_deleteLabel",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Delete label",
+        "tags": ["CMS Labels"]
+      }
+    },
+    "/cart": {
+      "get": {
+        "operationId": "CartController_getCartItems",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CartItemResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Get cart items",
+        "tags": ["Cart"]
+      }
+    },
+    "/cart/prompts/{uuid}": {
+      "post": {
+        "operationId": "CartController_addPromptToCart",
+        "parameters": [
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Add prompt to cart by prompt UUID",
+        "tags": ["Cart"]
+      }
+    },
+    "/cart/{id}": {
+      "delete": {
+        "operationId": "CartController_removeFromCart",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Remove item from cart",
+        "tags": ["Cart"]
+      }
+    },
+    "/orders": {
+      "get": {
+        "operationId": "OrderController_listOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/OrderResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "List order history",
+        "tags": ["Order"]
+      }
+    },
+    "/orders/checkout/cart": {
+      "post": {
+        "operationId": "OrderController_checkoutFromCart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/OrderResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Checkout all items in cart",
+        "tags": ["Order"]
+      }
+    },
+    "/orders/checkout/prompts/{uuid}": {
+      "post": {
+        "operationId": "OrderController_checkoutPromptDirect",
+        "parameters": [
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/OrderResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Direct purchase a prompt by UUID",
+        "tags": ["Order"]
+      }
+    },
+    "/orders/{uuid}": {
+      "get": {
+        "operationId": "OrderController_getOrder",
+        "parameters": [
+          { "name": "uuid", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/OrderResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Get order detail by UUID",
+        "tags": ["Order"]
+      }
+    },
+    "/orders/webhook/stripe": {
+      "post": {
+        "operationId": "OrderWebhookController_stripeWebhook",
+        "parameters": [
+          {
+            "name": "stripe-signature",
+            "required": true,
+            "in": "header",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": { "200": { "description": "" } },
+        "summary": "Stripe webhook receiver",
+        "tags": ["OrderWebhook"]
+      }
+    },
+    "/cms/auth/login": {
+      "post": {
+        "operationId": "AdminCmsAuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/AdminLoginRequest" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/AdminLoginResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Admin login",
+        "tags": ["CMS Auth"]
+      }
+    },
+    "/cms/admins/me": {
+      "get": {
+        "operationId": "AdminCmsController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/AdminMeResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get current admin profile",
+        "tags": ["CMS Admins"]
+      }
+    }
+  },
+  "info": { "title": "GaryTu AI API", "description": "", "version": "1.0", "contact": {} },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "user-token": { "scheme": "bearer", "bearerFormat": "JWT", "type": "http" },
+      "admin-token": { "scheme": "bearer", "bearerFormat": "JWT", "type": "http" }
+    },
+    "schemas": {
+      "RestResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "object", "description": "Code, 0 for success, others for errors" },
+          "message": { "type": "string", "description": "Message for developers" },
+          "data": { "type": "object", "description": "Response data", "nullable": true },
+          "timestamp": { "type": "string", "description": "ISO8601 timestamp" },
+          "errors": {
+            "description": "Optional errors array",
+            "type": "array",
+            "items": { "type": "object" }
+          },
+          "extra": { "type": "object", "description": "Extra info" }
+        },
+        "required": ["code", "message", "timestamp"]
+      },
+      "EmailRegisterRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "test@gmail.com" },
+          "password": { "type": "string", "example": "Aa123456@" },
+          "name": { "type": "string", "description": "Nickname", "maxLength": 64, "example": "Tom" }
+        },
+        "required": ["email", "password"]
+      },
+      "EmailRegisterVerifyRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "test@gmail.com" },
+          "otp": { "type": "string", "example": "123456" }
+        },
+        "required": ["email", "otp"]
+      },
+      "AuthLoginResponse": {
+        "type": "object",
+        "properties": { "access_token": { "type": "string" } },
+        "required": ["access_token"]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "test@gmail.com" },
+          "password": { "type": "string", "example": "Aa123456@" }
+        },
+        "required": ["email", "password"]
+      },
+      "GoogleLoginRequest": {
+        "type": "object",
+        "properties": { "token": { "type": "string", "example": "Google credential (id token)" } },
+        "required": ["token"]
+      },
+      "UserInfoResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string", "description": "Public UUID for API" },
+          "email": { "type": "object", "description": "Email" },
+          "name": { "type": "object", "description": "Nickname" },
+          "locale": {
+            "type": "object",
+            "description": "Preferred locale",
+            "nullable": true,
+            "maxLength": 16,
+            "example": "en"
+          }
+        },
+        "required": ["uuid", "email", "name"]
+      },
+      "UpdateUserInfoRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nickname",
+            "maxLength": 64,
+            "example": "Tom"
+          },
+          "locale": {
+            "type": "object",
+            "description": "Preferred locale",
+            "nullable": true,
+            "maxLength": 16,
+            "example": "en"
+          }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "number" },
+          "page_size": { "type": "number" },
+          "total": { "type": "number" },
+          "total_pages": { "type": "number" }
+        },
+        "required": ["page", "page_size", "total", "total_pages"]
+      },
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "object", "description": "Code, 0 for success, others for errors" },
+          "message": { "type": "string", "description": "Message for developers" },
+          "data": { "type": "object", "description": "Response data", "nullable": true },
+          "timestamp": { "type": "string", "description": "ISO8601 timestamp" },
+          "errors": {
+            "description": "Optional errors array",
+            "type": "array",
+            "items": { "type": "object" }
+          },
+          "extra": { "type": "object", "description": "Extra info" },
+          "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+        },
+        "required": ["code", "message", "timestamp", "meta"]
+      },
+      "PromptCategoryResponse": {
+        "type": "object",
+        "properties": { "code": { "type": "string" }, "name": { "type": "string" } },
+        "required": ["code", "name"]
+      },
+      "PromptFileResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "category": { "type": "string" },
+          "file_type": { "type": "string" },
+          "position": { "type": "number" },
+          "url": { "type": "string" },
+          "thumbnail_url": { "type": "object", "nullable": true },
+          "created_at": { "type": "object", "nullable": true }
+        },
+        "required": ["uuid", "category", "file_type", "position", "url"]
+      },
+      "PromptLabelResponse": {
+        "type": "object",
+        "properties": { "code": { "type": "string" }, "name": { "type": "string" } },
+        "required": ["code", "name"]
+      },
+      "PromptUserStateResponse": {
+        "type": "object",
+        "properties": { "is_favorite": { "type": "boolean" }, "purchased": { "type": "boolean" } },
+        "required": ["is_favorite", "purchased"]
+      },
+      "PromptResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "object", "nullable": true },
+          "price": { "type": "number" },
+          "enabled": { "type": "boolean" },
+          "bonus_credit": { "type": "number" },
+          "media_type": { "type": "string", "enum": ["IMAGE", "VIDEO"], "nullable": true },
+          "category": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/PromptCategoryResponse" }]
+          },
+          "created_at": { "type": "object", "nullable": true },
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/PromptFileResponse" }]
+          },
+          "pdf": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/PromptFileResponse" }]
+          },
+          "zip": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/PromptFileResponse" }]
+          },
+          "files": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PromptFileResponse" }
+          },
+          "labels": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PromptLabelResponse" }
+          },
+          "user_state": { "$ref": "#/components/schemas/PromptUserStateResponse" }
+        },
+        "required": [
+          "uuid",
+          "name",
+          "price",
+          "enabled",
+          "bonus_credit",
+          "files",
+          "labels",
+          "user_state"
+        ]
+      },
+      "CmsPromptFileMutationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Existing file primary key. Keep or replace this file when provided.",
+            "example": "10",
+            "oneOf": [{ "type": "string" }, { "type": "integer" }]
+          },
+          "file_key": {
+            "type": "object",
+            "description": "Multipart form-data file field name for the new uploaded file.",
+            "example": "cover_file"
+          },
+          "thumbnail_id": {
+            "description": "Existing thumbnail file primary key.",
+            "example": "11",
+            "oneOf": [{ "type": "string" }, { "type": "integer" }]
+          },
+          "thumbnail_file_key": {
+            "type": "object",
+            "description": "Multipart form-data file field name for the new uploaded thumbnail.",
+            "example": "cover_thumb"
+          },
+          "position": { "type": "number", "description": "Media order position.", "example": 0 }
+        }
+      },
+      "CmsPromptDownloadMutationRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Existing download file primary key.",
+            "example": "20",
+            "oneOf": [{ "type": "string" }, { "type": "integer" }]
+          },
+          "file_key": {
+            "type": "object",
+            "description": "Multipart form-data file field name for the new uploaded download file.",
+            "example": "pdf_file"
+          }
+        }
+      },
+      "CmsUpdatePromptFilesPayloadRequest": {
+        "type": "object",
+        "properties": {
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileMutationRequest" }]
+          },
+          "pdf": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptDownloadMutationRequest" }]
+          },
+          "zip": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptDownloadMutationRequest" }]
+          },
+          "media": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsPromptFileMutationRequest" }
+          },
+          "delete_ids": {
+            "description": "File primary keys to delete. Accepts numeric string or integer. Child thumbnails will be deleted before parent files.",
+            "example": ["33"],
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "AdminPromptTranslationResponse": {
+        "type": "object",
+        "properties": {
+          "locale": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "object", "nullable": true }
+        },
+        "required": ["locale", "name"]
+      },
+      "AdminNameTranslationResponse": {
+        "type": "object",
+        "properties": { "locale": { "type": "string" }, "name": { "type": "string" } },
+        "required": ["locale", "name"]
+      },
+      "CmsPromptCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "code": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          }
+        },
+        "required": ["id", "code", "translations"]
+      },
+      "CmsPromptFileResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "category": { "type": "string" },
+          "file_type": { "type": "string" },
+          "position": { "type": "number" },
+          "url": { "type": "string" },
+          "thumbnail_url": { "type": "object", "nullable": true },
+          "created_at": { "type": "object", "nullable": true },
+          "id": { "type": "string" }
+        },
+        "required": ["uuid", "category", "file_type", "position", "url", "id"]
+      },
+      "CmsPromptLabelResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "code": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          }
+        },
+        "required": ["id", "code", "translations"]
+      },
+      "CmsPromptDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminPromptTranslationResponse" }
+          },
+          "media_type": { "type": "string", "enum": ["IMAGE", "VIDEO"], "nullable": true },
+          "category": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptCategoryResponse" }]
+          },
+          "price": { "type": "number" },
+          "bonus_credit": { "type": "number" },
+          "featured_rank": { "type": "number" },
+          "enabled": { "type": "boolean" },
+          "created_at": { "type": "object", "nullable": true },
+          "updated_at": { "type": "object", "nullable": true },
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "pdf": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "zip": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "files": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsPromptFileResponse" }
+          },
+          "labels": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsPromptLabelResponse" }
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "translations",
+          "price",
+          "bonus_credit",
+          "featured_rank",
+          "enabled",
+          "created_at",
+          "updated_at",
+          "files",
+          "labels"
+        ]
+      },
+      "CmsPromptResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminPromptTranslationResponse" }
+          },
+          "media_type": { "type": "string", "enum": ["IMAGE", "VIDEO"], "nullable": true },
+          "category": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptCategoryResponse" }]
+          },
+          "price": { "type": "number" },
+          "bonus_credit": { "type": "number" },
+          "featured_rank": { "type": "number" },
+          "enabled": { "type": "boolean" },
+          "created_at": { "type": "object", "nullable": true },
+          "updated_at": { "type": "object", "nullable": true }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "translations",
+          "price",
+          "bonus_credit",
+          "featured_rank",
+          "enabled",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "AdminPromptTranslationRequest": {
+        "type": "object",
+        "properties": {
+          "locale": { "type": "string", "example": "en" },
+          "name": { "type": "string", "example": "AI Prompt" },
+          "description": { "type": "object", "example": "A prompt pack for cinematic portraits." }
+        },
+        "required": ["locale", "name"]
+      },
+      "AdminCreatePromptRequest": {
+        "type": "object",
+        "properties": {
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminPromptTranslationRequest" }
+          },
+          "media_type": { "type": "string", "enum": ["IMAGE", "VIDEO"], "nullable": true },
+          "category_id": { "type": "object", "example": 1, "nullable": true },
+          "price": { "type": "number", "example": 299 },
+          "bonus_credit": { "type": "number", "example": 0, "default": 0 },
+          "enabled": { "type": "boolean", "default": false }
+        },
+        "required": ["translations", "price"]
+      },
+      "CmsFeaturedPromptItemRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number", "example": 1 },
+          "rank": { "type": "number", "example": 0 }
+        },
+        "required": ["id", "rank"]
+      },
+      "CmsUpdateFeaturedPromptsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "default": [],
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsFeaturedPromptItemRequest" }
+          }
+        }
+      },
+      "AdminUpdatePromptRequest": {
+        "type": "object",
+        "properties": {
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminPromptTranslationRequest" }
+          },
+          "media_type": { "type": "string", "enum": ["IMAGE", "VIDEO"], "nullable": true },
+          "category_id": { "type": "object", "example": 1, "nullable": true },
+          "price": { "type": "number", "example": 299 },
+          "bonus_credit": { "type": "number", "example": 0 },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "CmsPromptFilesResponse": {
+        "type": "object",
+        "properties": {
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "pdf": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "zip": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "files": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsPromptFileResponse" }
+          }
+        },
+        "required": ["files"]
+      },
+      "AdminTestUploadResponse": {
+        "type": "object",
+        "properties": {
+          "bucket": { "type": "string" },
+          "key": { "type": "string" },
+          "url": { "type": "string" },
+          "etag": { "type": "object", "nullable": true }
+        },
+        "required": ["bucket", "key", "url", "etag"]
+      },
+      "PublicNamedItemResponse": {
+        "type": "object",
+        "properties": { "code": { "type": "string" }, "name": { "type": "string" } },
+        "required": ["code", "name"]
+      },
+      "WebConfigResponse": {
+        "type": "object",
+        "properties": {
+          "prompt_labels": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PublicNamedItemResponse" }
+          },
+          "prompt_categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PublicNamedItemResponse" }
+          }
+        },
+        "required": ["prompt_labels", "prompt_categories"]
+      },
+      "AdminCategoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "code": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": ["id", "code", "enabled", "translations", "created_at", "updated_at"]
+      },
+      "AdminNameTranslationRequest": {
+        "type": "object",
+        "properties": {
+          "locale": { "type": "string", "example": "en" },
+          "name": { "type": "string", "example": "AI Prompt" }
+        },
+        "required": ["locale", "name"]
+      },
+      "AdminCreateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "portrait" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationRequest" }
+          },
+          "enabled": { "type": "boolean", "default": true }
+        },
+        "required": ["code", "translations"]
+      },
+      "AdminUpdateCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "portrait" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationRequest" }
+          },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "AdminLabelResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number" },
+          "code": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          },
+          "enabled": { "type": "boolean" },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": ["id", "code", "translations", "enabled", "created_at", "updated_at"]
+      },
+      "AdminCreateLabelRequest": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "ai.prompt" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationRequest" }
+          },
+          "enabled": { "type": "boolean", "default": true }
+        },
+        "required": ["code", "translations"]
+      },
+      "AdminUpdateLabelRequest": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string", "example": "ai.prompt" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationRequest" }
+          },
+          "enabled": { "type": "boolean" }
+        }
+      },
+      "CartItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "item_type": { "type": "string" },
+          "quantity": { "type": "number" },
+          "created_at": { "format": "date-time", "type": "string" },
+          "item": { "nullable": true, "allOf": [{ "$ref": "#/components/schemas/PromptResponse" }] }
+        },
+        "required": ["id", "item_type", "quantity", "created_at"]
+      },
+      "OrderPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "expires_at": { "type": "object", "nullable": true },
+          "checkout_url": { "type": "object", "nullable": true }
+        }
+      },
+      "OrderLineItemResponse": {
+        "type": "object",
+        "properties": {
+          "item_type": { "type": "string" },
+          "quantity": { "type": "number" },
+          "unit_price": { "type": "number" },
+          "amount": { "type": "number" },
+          "item": { "nullable": true, "allOf": [{ "$ref": "#/components/schemas/PromptResponse" }] }
+        },
+        "required": ["item_type", "quantity", "unit_price", "amount"]
+      },
+      "OrderResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "status": { "type": "string" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "created_at": { "format": "date-time", "type": "string" },
+          "payment": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/OrderPaymentResponse" }]
+          },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OrderLineItemResponse" }
+          }
+        },
+        "required": ["uuid", "status", "amount", "currency", "created_at", "items"]
+      },
+      "AdminLoginResponse": {
+        "type": "object",
+        "properties": { "access_token": { "type": "string" } },
+        "required": ["access_token"]
+      },
+      "AdminLoginRequest": {
+        "type": "object",
+        "properties": {
+          "username": { "type": "string", "example": "admin" },
+          "password": { "type": "string", "example": "Aa123456@" }
+        },
+        "required": ["username", "password"]
+      },
+      "AdminMeResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "username": { "type": "string" },
+          "name": { "type": "object", "nullable": true },
+          "role": { "type": "object", "nullable": true },
+          "enabled": { "type": "boolean" }
+        },
+        "required": ["id", "username", "name", "role", "enabled"]
+      }
+    }
+  }
+}

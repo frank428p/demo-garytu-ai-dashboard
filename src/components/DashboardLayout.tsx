@@ -2,7 +2,18 @@
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Layout, Menu, Button, Avatar, Badge, Typography, Space, Dropdown, Drawer, Grid } from "antd";
+import {
+  Layout,
+  Menu,
+  Button,
+  Avatar,
+  Badge,
+  Typography,
+  Space,
+  Dropdown,
+  Drawer,
+  Grid,
+} from "antd";
 import {
   DashboardOutlined,
   FileTextOutlined,
@@ -13,6 +24,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MenuOutlined,
+  TagOutlined,
   ThunderboltOutlined,
   ShoppingCartOutlined,
   CrownOutlined,
@@ -39,11 +51,6 @@ const menuItems: MenuProps["items"] = [
     label: "Prompt",
     children: [
       {
-        key: "/prompt/styles",
-        icon: <FileTextOutlined />,
-        label: "Prompt Styles",
-      },
-      {
         key: "/prompt/list",
         icon: <UnorderedListOutlined />,
         label: "Prompt List",
@@ -52,6 +59,16 @@ const menuItems: MenuProps["items"] = [
         key: "/prompt/collections",
         icon: <FolderOutlined />,
         label: "Prompt Collections",
+      },
+      {
+        key: "/prompt/categories",
+        icon: <FileTextOutlined />,
+        label: "Prompt Categories",
+      },
+      {
+        key: "/prompt/labels",
+        icon: <TagOutlined />,
+        label: "Prompt Labels",
       },
     ],
   },
@@ -102,7 +119,13 @@ const siderStyle: React.CSSProperties = {
   background: "#1a1a2e",
 };
 
-function SiderContent({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate: (key: string) => void }) {
+function SiderContent({
+  collapsed,
+  onNavigate,
+}: {
+  collapsed?: boolean;
+  onNavigate: (key: string) => void;
+}) {
   const pathname = usePathname();
   return (
     <>
@@ -142,11 +165,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [drawerOpen, setDrawerOpen] = useState(false);
   const router = useRouter();
   const screens = useBreakpoint();
-  const isMobile = !screens.md; 
+  const isMobile = !screens.md;
 
   async function handleLogout() {
-    await axios.post('/api/auth/logout')
-    router.push('/login')
+    await axios.post("/api/auth/logout");
+    router.push("/login");
   }
 
   function handleNavigate(key: string) {
@@ -204,13 +227,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Button
             type="text"
             icon={
-              isMobile
-                ? <MenuOutlined />
-                : collapsed
-                ? <MenuUnfoldOutlined />
-                : <MenuFoldOutlined />
+              isMobile ? (
+                <MenuOutlined />
+              ) : collapsed ? (
+                <MenuUnfoldOutlined />
+              ) : (
+                <MenuFoldOutlined />
+              )
             }
-            onClick={() => isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed)}
+            onClick={() => (isMobile ? setDrawerOpen(true) : setCollapsed(!collapsed))}
             style={{ fontSize: 16 }}
           />
 
