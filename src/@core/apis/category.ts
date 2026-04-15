@@ -11,6 +11,11 @@ export async function getCategories(params?: GetCategoriesParams): Promise<Categ
   return response.data;
 }
 
+export async function getEnabledCategories(): Promise<ApiResponse<Category[]>> {
+  const response = await apiClient.get<ApiResponse<Category[]>>("/cms/categories/enabled");
+  return response.data;
+}
+
 export async function getCategory(id: string): Promise<CategoryResponse> {
   const response = await apiClient.get<CategoryResponse>(`/cms/categories/${id}`);
   return response.data;

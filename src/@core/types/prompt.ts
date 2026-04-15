@@ -59,6 +59,7 @@ export interface PromptFormData {
   translations: PromptTranslation[];
   media_type: MediaType;
   category_id: number;
+  label_id: number;
   price: number;
   bonus_credit: number;
   enabled: boolean;

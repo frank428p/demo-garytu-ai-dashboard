@@ -20,6 +20,8 @@ import {
   Typography,
 } from "antd";
 import { getPrompt, createPrompt, updatePrompt } from "@/@core/apis/prompt";
+import { getEnabledCategories } from "@/@core/apis/category";
+import type { Category } from "@/@core/types/category";
 import type { PromptFormData, MediaType } from "@/@core/types/prompt";
 import type { Locale } from "@/@core/types/common";
 
@@ -54,7 +56,14 @@ export default function PromptForm({ id }: Props) {
   const [form] = Form.useForm<PromptFormData>();
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(isEdit);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [editInitialValues, setEditInitialValues] = useState<Partial<PromptFormData> | undefined>();
+
+  useEffect(() => {
+    getEnabledCategories()
+      .then((res) => setCategories(res.data))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -63,14 +72,15 @@ export default function PromptForm({ id }: Props) {
     getPrompt(id)
       .then((res) => {
         const p = res.data;
+        console.log("p", p);
         const translations = DEFAULT_TRANSLATIONS.map((t) => {
-          const found = p.translations.find((et) => et.locale === t.locale);
+          const found = (p.translations ?? []).find((et) => et.locale === t.locale);
           return found ?? t;
         });
         setEditInitialValues({
           translations,
           media_type: p.media_type,
-          category_id: p.category.id,
+          category_id: p.category?.id,
           price: p.price,
           bonus_credit: p.bonus_credit,
           enabled: p.enabled,
@@ -148,16 +158,6 @@ export default function PromptForm({ id }: Props) {
 
           <Col xs={24} sm={5}>
             <Form.Item
-              label="分類 ID"
-              name="category_id"
-              rules={[{ required: false, message: "請輸入分類 ID" }]}
-            >
-              <InputNumber style={{ width: "100%" }} min={1} placeholder="請輸入分類 ID" />
-            </Form.Item>
-          </Col>
-
-          <Col xs={24} sm={5}>
-            <Form.Item
               label="價格"
               name="price"
               rules={[{ required: true, message: "請輸入價格" }]}
@@ -167,8 +167,27 @@ export default function PromptForm({ id }: Props) {
           </Col>
 
           <Col xs={24} sm={5}>
-            <Form.Item label="贈送點數" name="bonus_credit">
+            <Form.Item
+              label="贈送點數"
+              name="bonus_credit"
+              rules={[{ required: true, message: "請輸入點數" }]}
+            >
               <InputNumber style={{ width: "100%" }} min={0} />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={5}>
+            <Form.Item label="風格" name="category_id">
+              <Select
+                showSearch
+                allowClear
+                placeholder="請選擇風格"
+                optionFilterProp="label"
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.translations.find((t) => t.locale === "zh-TW")?.name ?? c.code,
+                }))}
+              />
             </Form.Item>
           </Col>
 

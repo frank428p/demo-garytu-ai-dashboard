@@ -11,6 +11,11 @@ export async function getLabels(params?: GetLabelsParams): Promise<LabelListResp
   return response.data;
 }
 
+export async function getEnabledLabels(): Promise<ApiResponse<Label[]>> {
+  const response = await apiClient.get<ApiResponse<Label[]>>("/cms/labels/enabled");
+  return response.data;
+}
+
 export async function getLabel(id: string): Promise<LabelResponse> {
   const response = await apiClient.get<LabelResponse>(`/cms/labels/${id}`);
   return response.data;
