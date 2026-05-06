@@ -31,6 +31,9 @@ import {
   SettingOutlined,
   RobotOutlined,
   LogoutOutlined,
+  VideoCameraOutlined,
+  PlaySquareOutlined,
+  DatabaseOutlined,
 } from "@ant-design/icons";
 import axios from "axios";
 import type { MenuProps } from "antd";
@@ -102,6 +105,23 @@ const menuItems: MenuProps["items"] = [
     ],
   },
   {
+    key: "video-generator",
+    icon: <VideoCameraOutlined />,
+    label: "Video Generator",
+    children: [
+      {
+        key: "/video-generator/video-selector",
+        icon: <PlaySquareOutlined />,
+        label: "Video Selector",
+      },
+      {
+        key: "/video-generator/video-model",
+        icon: <DatabaseOutlined />,
+        label: "Video Model",
+      },
+    ],
+  },
+  {
     key: "system",
     icon: <SettingOutlined />,
     label: "System",
@@ -127,6 +147,11 @@ function SiderContent({
   onNavigate: (key: string) => void;
 }) {
   const pathname = usePathname();
+  const [openKeys, setOpenKeys] = useState<string[]>(() => {
+    const groupKey = pathname.split("/")[1];
+    return groupKey ? [groupKey] : [];
+  });
+
   return (
     <>
       <div
@@ -151,7 +176,8 @@ function SiderContent({
         theme="dark"
         mode="inline"
         selectedKeys={[pathname]}
-        defaultOpenKeys={["prompt", "user", "payment", "system"]}
+        openKeys={collapsed ? [] : openKeys}
+        onOpenChange={setOpenKeys}
         items={menuItems}
         onClick={({ key }) => onNavigate(key)}
         style={{ background: "transparent", borderRight: 0, marginTop: 8 }}
