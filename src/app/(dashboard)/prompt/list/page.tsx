@@ -6,8 +6,6 @@ import Image from "next/image";
 import { Table, Tag, Switch, Typography, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
-import AppProvider from "@/components/AppProvider";
-import DashboardLayout from "@/components/DashboardLayout";
 import { getPrompts } from "@/@core/apis/prompt";
 import type { Prompt } from "@/@core/types/prompt";
 import type { ApiMeta } from "@/@core/types/apiConfig";
@@ -97,44 +95,42 @@ export default function PromptListPage() {
   }, []);
 
   return (
-    <AppProvider>
-      <DashboardLayout>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
+    <>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Title level={4} style={{ margin: 0 }}>
+          Prompt List
+        </Title>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => router.push("/prompt/create")}
         >
-          <Title level={4} style={{ margin: 0 }}>
-            Prompt List
-          </Title>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => router.push("/prompt/create")}
-          >
-            新增
-          </Button>
-        </div>
-        <Table
-          rowKey="id"
-          columns={columns}
-          dataSource={data}
-          loading={loading}
-          onRow={(record) => ({
-            onClick: () => router.push(`/prompt/${record.id}`),
-            style: { cursor: "pointer" },
-          })}
-          pagination={{
-            current: meta.page,
-            pageSize: meta.page_size,
-            total: meta.total,
-            onChange: (page, pageSize) => fetchData(page, pageSize),
-          }}
-        />
-      </DashboardLayout>
-    </AppProvider>
+          新增
+        </Button>
+      </div>
+      <Table
+        rowKey="id"
+        columns={columns}
+        dataSource={data}
+        loading={loading}
+        onRow={(record) => ({
+          onClick: () => router.push(`/prompt/${record.id}`),
+          style: { cursor: "pointer" },
+        })}
+        pagination={{
+          current: meta.page,
+          pageSize: meta.page_size,
+          total: meta.total,
+          onChange: (page, pageSize) => fetchData(page, pageSize),
+        }}
+      />
+    </>
   );
 }

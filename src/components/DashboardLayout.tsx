@@ -121,18 +121,18 @@ const menuItems: MenuProps["items"] = [
       },
     ],
   },
-  {
-    key: "system",
-    icon: <SettingOutlined />,
-    label: "System",
-    children: [
-      {
-        key: "/system/ai-model-settings",
-        icon: <RobotOutlined />,
-        label: "AI Model Settings",
-      },
-    ],
-  },
+  // {
+  //   key: "system",
+  //   icon: <SettingOutlined />,
+  //   label: "System",
+  //   children: [
+  //     {
+  //       key: "/system/ai-model-settings",
+  //       icon: <RobotOutlined />,
+  //       label: "AI Model Settings",
+  //     },
+  //   ],
+  // },
 ];
 
 const siderStyle: React.CSSProperties = {

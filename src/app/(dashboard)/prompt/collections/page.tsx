@@ -5,8 +5,6 @@ import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { App, Button, Card, Input, Modal, Spin, Typography, Avatar } from "antd";
 import { PlusOutlined, HolderOutlined, DeleteOutlined } from "@ant-design/icons";
-import AppProvider from "@/components/AppProvider";
-import DashboardLayout from "@/components/DashboardLayout";
 import { getFeaturedPrompts, getPrompt, updateFeaturedPrompts } from "@/@core/apis/prompt";
 import type { Prompt } from "@/@core/types/prompt";
 
@@ -227,11 +225,5 @@ function PromptCollectionsContent() {
 }
 
 export default function PromptCollectionsPage() {
-  return (
-    <AppProvider>
-      <DashboardLayout>
-        <PromptCollectionsContent />
-      </DashboardLayout>
-    </AppProvider>
-  );
+  return (<PromptCollectionsContent />);
 }

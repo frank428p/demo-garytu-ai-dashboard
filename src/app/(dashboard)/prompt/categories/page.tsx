@@ -15,38 +15,36 @@ import {
 } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import type { TableProps } from "antd";
-import AppProvider from "@/components/AppProvider";
-import DashboardLayout from "@/components/DashboardLayout";
 import {
-  getLabels,
-  createLabel,
-  updateLabel,
-  deleteLabel,
-} from "@/@core/apis/label";
-import type { Label, LabelFormData } from "@/@core/types/label";
+  getCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "@/@core/apis/category";
+import type { Category, CategoryFormData } from "@/@core/types/category";
 import type { ApiMeta } from "@/@core/types/apiConfig";
 
 const { Title } = Typography;
 
-// ─── Label Form Modal ─────────────────────────────────────────────────────────
+// ─── Category Form Modal ──────────────────────────────────────────────────────
 
-interface LabelModalProps {
+interface CategoryModalProps {
   open: boolean;
-  editing: Label | null;
+  editing: Category | null;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-interface LabelFormFields {
+interface CategoryFormFields {
   code: string;
   name_zh: string;
   name_en: string;
   enabled: boolean;
 }
 
-function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
+function CategoryModal({ open, editing, onClose, onSuccess }: CategoryModalProps) {
   const { message } = App.useApp();
-  const [form] = Form.useForm<LabelFormFields>();
+  const [form] = Form.useForm<CategoryFormFields>();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -66,13 +64,13 @@ function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
   }, [open, editing, form]);
 
   async function handleOk() {
-    let values: LabelFormFields;
+    let values: CategoryFormFields;
     try {
       values = await form.validateFields();
     } catch {
       return;
     }
-    const payload: LabelFormData = {
+    const payload: CategoryFormData = {
       code: values.code,
       enabled: values.enabled,
       translations: [
@@ -83,10 +81,10 @@ function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
     setLoading(true);
     try {
       if (editing) {
-        await updateLabel(String(editing.id), payload);
+        await updateCategory(String(editing.id), payload);
         message.success("更新成功");
       } else {
-        await createLabel(payload);
+        await createCategory(payload);
         message.success("新增成功");
       }
       onSuccess();
@@ -100,7 +98,7 @@ function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
 
   return (
     <Modal
-      title={editing ? "編輯標籤" : "新增標籤"}
+      title={editing ? "編輯分類" : "新增分類"}
       open={open}
       onCancel={onClose}
       onOk={handleOk}
@@ -115,7 +113,7 @@ function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
           label="代碼 (code)"
           rules={[{ required: true, message: "請輸入代碼" }]}
         >
-          <Input placeholder="例如: ai.prompt" />
+          <Input placeholder="例如: portrait" />
         </Form.Item>
 
         <Form.Item
@@ -144,20 +142,20 @@ function LabelModal({ open, editing, onClose, onSuccess }: LabelModalProps) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-function PromptLabelsContent() {
-  const { message } = App.useApp();
-  const [data, setData] = useState<Label[]>([]);
+function PromptCategoriesContent() {
+  const { message, modal } = App.useApp();
+  const [data, setData] = useState<Category[]>([]);
   const [meta, setMeta] = useState<ApiMeta>({ page: 1, page_size: 20, total: 0, total_pages: 0 });
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Label | null>(null);
+  const [editing, setEditing] = useState<Category | null>(null);
 
   const fetchData = useCallback(
     async (page: number, pageSize: number, searchVal: string) => {
       setLoading(true);
       try {
-        const res = await getLabels({ page, page_size: pageSize, search: searchVal || undefined });
+        const res = await getCategories({ page, page_size: pageSize, search: searchVal || undefined });
         setData(res.data);
         if (res.meta) setMeta(res.meta);
       } catch {
@@ -183,14 +181,14 @@ function PromptLabelsContent() {
     setModalOpen(true);
   }
 
-  function handleOpenEdit(record: Label) {
+  function handleOpenEdit(record: Category) {
     setEditing(record);
     setModalOpen(true);
   }
 
   async function handleDelete(id: number) {
     try {
-      await deleteLabel(String(id));
+      await deleteCategory(String(id));
       message.success("刪除成功");
       fetchData(meta.page, meta.page_size, search);
     } catch {
@@ -198,7 +196,7 @@ function PromptLabelsContent() {
     }
   }
 
-  const columns: TableProps<Label>["columns"] = [
+  const columns: TableProps<Category>["columns"] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -213,13 +211,13 @@ function PromptLabelsContent() {
     {
       title: "中文名稱",
       key: "name_zh",
-      render: (_: unknown, record: Label) =>
+      render: (_: unknown, record: Category) =>
         record.translations.find((t) => t.locale === "zh-TW")?.name ?? "-",
     },
     {
       title: "英文名稱",
       key: "name_en",
-      render: (_: unknown, record: Label) =>
+      render: (_: unknown, record: Category) =>
         record.translations.find((t) => t.locale === "en")?.name ?? "-",
     },
     {
@@ -233,7 +231,7 @@ function PromptLabelsContent() {
       title: "操作",
       key: "actions",
       width: 120,
-      render: (_: unknown, record: Label) => (
+      render: (_: unknown, record: Category) => (
         <Space>
           <Button
             size="small"
@@ -241,7 +239,7 @@ function PromptLabelsContent() {
             onClick={() => handleOpenEdit(record)}
           />
           <Popconfirm
-            title="確定刪除此標籤？"
+            title="確定刪除此分類？"
             onConfirm={() => handleDelete(record.id)}
             okText="刪除"
             cancelText="取消"
@@ -265,7 +263,7 @@ function PromptLabelsContent() {
         }}
       >
         <Title level={4} style={{ margin: 0 }}>
-          Prompt Labels
+          Prompt Categories
         </Title>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenCreate}>
           新增
@@ -294,7 +292,7 @@ function PromptLabelsContent() {
         }}
       />
 
-      <LabelModal
+      <CategoryModal
         open={modalOpen}
         editing={editing}
         onClose={() => setModalOpen(false)}
@@ -304,12 +302,6 @@ function PromptLabelsContent() {
   );
 }
 
-export default function PromptLabelsPage() {
-  return (
-    <AppProvider>
-      <DashboardLayout>
-        <PromptLabelsContent />
-      </DashboardLayout>
-    </AppProvider>
-  );
+export default function PromptCategoriesPage() {
+  return (<PromptCategoriesContent />);
 }
