@@ -20,6 +20,12 @@ export default function PromptListPage() {
 
   const columns: TableProps<Prompt>["columns"] = [
     {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      width: 80,
+    },
+    {
       title: "封面",
       key: "cover",
       width: 120,
@@ -46,8 +52,14 @@ export default function PromptListPage() {
     {
       title: "名稱",
       key: "name",
-      render: (_: unknown, record: Prompt) =>
-        record.translations.find((t) => t.locale === "zh-TW")?.name ?? "-",
+      render: (_: unknown, record: Prompt) => (
+        <div>
+          <div>{record.translations.find((t) => t.locale === "zh-TW")?.name ?? "-"}</div>
+          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+            {record.translations.find((t) => t.locale === "en")?.name ?? "-"}
+          </div>
+        </div>
+      ),
     },
     {
       title: "類型",
@@ -57,13 +69,25 @@ export default function PromptListPage() {
     },
     {
       title: "分類",
-      dataIndex: ["category", "name"],
       key: "category",
+      render: (_: unknown, record: Prompt) => {
+        const zhName = record.category?.translations?.find((t) => t.locale === "zh-TW")?.name ?? "";
+        const enName = record.category?.translations?.find((t) => t.locale === "en")?.name;
+        return zhName ? (
+          <div>
+            <div>{zhName}</div>
+            {enName && <div style={{ fontSize: 12, color: "#8c8c8c" }}>{enName}</div>}
+          </div>
+        ) : (
+          "-"
+        );
+      },
     },
     {
       title: "價格",
       dataIndex: "price",
       key: "price",
+      render: (value: number) => `NT$ ${value?.toLocaleString("zh-TW")}`,
     },
     {
       title: "標籤",
@@ -121,7 +145,7 @@ export default function PromptListPage() {
         dataSource={data}
         loading={loading}
         onRow={(record) => ({
-          onClick: () => router.push(`/prompt/${record.id}`),
+          onClick: () => router.push(`/prompt/list/${record.id}`),
           style: { cursor: "pointer" },
         })}
         pagination={{

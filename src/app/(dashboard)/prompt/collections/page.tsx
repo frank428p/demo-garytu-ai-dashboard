@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import { App, Button, Card, Input, Modal, Spin, Typography, Avatar } from "antd";
-import { PlusOutlined, HolderOutlined, DeleteOutlined } from "@ant-design/icons";
+import { PlusOutlined, HolderOutlined, DeleteOutlined, LinkOutlined } from "@ant-design/icons";
 import { getFeaturedPrompts, getPrompt, updateFeaturedPrompts } from "@/@core/apis/prompt";
 import type { Prompt } from "@/@core/types/prompt";
 
@@ -16,9 +17,10 @@ interface SortableRowProps {
   prompt: Prompt;
   index: number;
   onRemove: (id: string) => void;
+  onNavigate: (id: string) => void;
 }
 
-function SortableRow({ prompt, index, onRemove }: SortableRowProps) {
+function SortableRow({ prompt, index, onRemove, onNavigate }: SortableRowProps) {
   const { ref, isDragSource } = useSortable({ id: prompt.id, index });
 
   return (
@@ -35,9 +37,11 @@ function SortableRow({ prompt, index, onRemove }: SortableRowProps) {
           {prompt.translations.find((t) => t.locale === "zh-TW")?.name ?? "-"}
         </Text>
         <Text type="secondary" className="text-xs">
-          ID: {prompt.id}
+          {prompt.translations.find((t) => t.locale === "en")?.name ?? "-"}
         </Text>
       </div>
+      <Text type="secondary" className="text-xs shrink-0">ID: {prompt.id}</Text>
+      <Button size="small" icon={<LinkOutlined />} onClick={() => onNavigate(prompt.id)} />
       <Button size="small" danger icon={<DeleteOutlined />} onClick={() => onRemove(prompt.id)} />
     </div>
   );
@@ -118,6 +122,7 @@ function AddPromptModal({ open, existingIds, onClose, onAdd }: AddPromptModalPro
 
 function PromptCollectionsContent() {
   const { message } = App.useApp();
+  const router = useRouter();
   const [initializing, setInitializing] = useState(true);
   const [saving, setSaving] = useState(false);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -207,6 +212,7 @@ function PromptCollectionsContent() {
                   prompt={prompt}
                   index={index}
                   onRemove={handleRemove}
+                  onNavigate={(id) => router.push(`/prompt/list/${id}`)}
                 />
               ))}
             </div>

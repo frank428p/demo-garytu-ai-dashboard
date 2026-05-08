@@ -1,11 +1,11 @@
-import { Locale } from "./common";
+import { Locale, Translation } from "./common";
 
 export type MediaType = "IMAGE" | "VIDEO" | "AUDIO" | "TEXT";
 export type FileType = "IMAGE" | "VIDEO" | "PDF" | "ZIP";
 export interface PromptCategory {
   id: number;
   code: string;
-  name: string;
+  translations: Translation[];
 }
 
 export interface PromptLabel {

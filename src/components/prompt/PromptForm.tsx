@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   App,
   Card,
+  Descriptions,
   Form,
   Grid,
   Input,
@@ -58,6 +59,7 @@ export default function PromptForm({ id }: Props) {
   const [initializing, setInitializing] = useState(isEdit);
   const [categories, setCategories] = useState<Category[]>([]);
   const [editInitialValues, setEditInitialValues] = useState<Partial<PromptFormData> | undefined>();
+  const [uuid, setUuid] = useState<string | null>(null);
 
   useEffect(() => {
     getEnabledCategories()
@@ -77,6 +79,7 @@ export default function PromptForm({ id }: Props) {
           const found = (p.translations ?? []).find((et) => et.locale === t.locale);
           return found ?? t;
         });
+        setUuid(p.uuid ?? null);
         setEditInitialValues({
           translations,
           media_type: p.media_type,
@@ -143,6 +146,13 @@ export default function PromptForm({ id }: Props) {
           <Form.Item label="啟用" name="enabled" valuePropName="checked">
             <Switch />
           </Form.Item>
+        )}
+
+        {isEdit && (
+          <Descriptions size="small" style={{ marginBottom: 16 }}>
+            <Descriptions.Item label="ID">{id}</Descriptions.Item>
+            <Descriptions.Item label="UUID">{uuid ?? "-"}</Descriptions.Item>
+          </Descriptions>
         )}
 
         <Row gutter={16}>

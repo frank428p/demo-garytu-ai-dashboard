@@ -6,7 +6,9 @@ import SelectorGrid from "./SelectorGrid";
 export default function MotionSelector() {
   return (
     <>
-      <SelectorCover type="motion" />
+      <div className="mb-4">
+        <SelectorCover type="motion" />
+      </div>
       <SelectorGrid type="motion" />
     </>
   );

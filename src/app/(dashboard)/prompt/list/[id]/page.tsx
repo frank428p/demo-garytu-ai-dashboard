@@ -12,11 +12,11 @@ export default function PromptDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <>
-        <Title level={4}>編輯 Prompt</Title>
-        <div className="flex flex-col gap-6">
-          <PromptForm id={id} />
-          <PromptFilesForm id={id} />
-        </div>
+      <Title level={4}>編輯 Prompt</Title>
+      <div className="flex flex-col gap-6">
+        <PromptForm id={id} />
+        <PromptFilesForm id={id} />
+      </div>
     </>
   );
 }

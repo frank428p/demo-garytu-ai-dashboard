@@ -6,6 +6,7 @@ import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
 import {
   App,
   Button,
+  Card,
   Form,
   Input,
   Modal,
@@ -99,8 +100,8 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
   }
 
   return (
-    <div>
-      <div className="mb-4">
+    <Card>
+      <div className="flex justify-end mb-4">
         <Button icon={<PlusOutlined />} type="primary" onClick={openAdd}>
           新增
         </Button>
@@ -154,7 +155,7 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
       >
         確定要刪除「{deletingItem?.code}」嗎？
       </Modal>
-    </div>
+    </Card>
   );
 }
 

@@ -6,7 +6,9 @@ import SelectorGrid from "./SelectorGrid";
 export default function MovementSelector() {
   return (
     <>
-      <SelectorCover type="movement" />
+      <div className="mb-4">
+        <SelectorCover type="movement" />
+      </div>
       <SelectorGrid type="movement" />
     </>
   );
