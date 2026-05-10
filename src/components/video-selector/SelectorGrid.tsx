@@ -3,21 +3,8 @@
 import { useEffect, useState } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
-import {
-  App,
-  Button,
-  Card,
-  Form,
-  Input,
-  Modal,
-  Upload,
-} from "antd";
-import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
+import { App, Button, Card, Form, Input, Modal, Upload } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -44,19 +31,55 @@ interface SelectorGridProps {
 
 const MOCK_DATA: Record<SelectorType, SelectorItem[]> = {
   style: [
-    { id: "s1", code: "STYLE_001", nameZhTW: "電影感", nameEn: "Cinematic", prompt: "cinematic style" },
+    {
+      id: "s1",
+      code: "STYLE_001",
+      nameZhTW: "電影感",
+      nameEn: "Cinematic",
+      prompt: "cinematic style",
+    },
     { id: "s2", code: "STYLE_002", nameZhTW: "動畫", nameEn: "Animated", prompt: "animated style" },
-    { id: "s3", code: "STYLE_003", nameZhTW: "紀錄片", nameEn: "Documentary", prompt: "documentary style" },
+    {
+      id: "s3",
+      code: "STYLE_003",
+      nameZhTW: "紀錄片",
+      nameEn: "Documentary",
+      prompt: "documentary style",
+    },
   ],
   movement: [
     { id: "m1", code: "MOVEMENT_001", nameZhTW: "平移", nameEn: "Pan", prompt: "camera pan" },
     { id: "m2", code: "MOVEMENT_002", nameZhTW: "推拉", nameEn: "Dolly", prompt: "dolly shot" },
-    { id: "m3", code: "MOVEMENT_003", nameZhTW: "跟拍", nameEn: "Tracking", prompt: "tracking shot" },
+    {
+      id: "m3",
+      code: "MOVEMENT_003",
+      nameZhTW: "跟拍",
+      nameEn: "Tracking",
+      prompt: "tracking shot",
+    },
   ],
   motion: [
-    { id: "mo1", code: "MOTION_001", nameZhTW: "慢動作", nameEn: "Slow Motion", prompt: "slow motion" },
-    { id: "mo2", code: "MOTION_002", nameZhTW: "快動作", nameEn: "Fast Motion", prompt: "fast motion" },
-    { id: "mo3", code: "MOTION_003", nameZhTW: "定格", nameEn: "Freeze Frame", prompt: "freeze frame" },
+    {
+      id: "mo1",
+      code: "MOTION_001",
+      nameZhTW: "慢動作",
+      nameEn: "Slow Motion",
+      prompt: "slow motion",
+    },
+    {
+      id: "mo2",
+      code: "MOTION_002",
+      nameZhTW: "快動作",
+      nameEn: "Fast Motion",
+      prompt: "fast motion",
+    },
+    {
+      id: "mo3",
+      code: "MOTION_003",
+      nameZhTW: "定格",
+      nameEn: "Freeze Frame",
+      prompt: "freeze frame",
+    },
   ],
 };
 
@@ -84,9 +107,7 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
 
   function handleModalSave(values: Omit<SelectorItem, "id">) {
     if (editingItem) {
-      setItems((prev) =>
-        prev.map((it) => (it.id === editingItem.id ? { ...it, ...values } : it))
-      );
+      setItems((prev) => prev.map((it) => (it.id === editingItem.id ? { ...it, ...values } : it)));
     } else {
       setItems((prev) => [...prev, { ...values, id: `new_${Date.now()}` }]);
     }
@@ -328,7 +349,7 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
         </Form.Item>
 
         {type === "style" && (
-          <Form.Item label="Example Video Cover">
+          <Form.Item label="Example Video Thumbnail">
             <Upload
               accept="image/*"
               showUploadList={false}

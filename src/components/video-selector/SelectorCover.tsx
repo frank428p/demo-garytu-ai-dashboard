@@ -35,13 +35,9 @@ export default function SelectorCover({ type }: SelectorCoverProps) {
   }
 
   return (
-    <Card title={`${LABEL[type]} Cover`} className="mb-4">
+    <Card title={`${LABEL[type]} Thumbnail`} className="mb-4">
       <div className="flex flex-col gap-3">
-        <Upload
-          accept="image/*"
-          showUploadList={false}
-          beforeUpload={handleUpload}
-        >
+        <Upload accept="image/*" showUploadList={false} beforeUpload={handleUpload}>
           <Button icon={<UploadOutlined />}>上傳 Cover Image</Button>
         </Upload>
 
@@ -54,21 +50,14 @@ export default function SelectorCover({ type }: SelectorCoverProps) {
             />
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">{coverFile?.name}</span>
-              <Button
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleRemove}
-              >
+              <Button size="small" danger icon={<DeleteOutlined />} onClick={handleRemove}>
                 移除
               </Button>
             </div>
           </div>
         )}
 
-        {!coverPreview && (
-          <span className="text-xs text-gray-400">尚未上傳封面圖片</span>
-        )}
+        {!coverPreview && <span className="text-xs text-gray-400">尚未上傳封面圖片</span>}
       </div>
     </Card>
   );
