@@ -50,6 +50,37 @@
         "tags": ["Auth"]
       }
     },
+    "/auth/register/resend": {
+      "post": {
+        "operationId": "AuthController_resendEmailRegistration",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/EmailRegisterResendRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resend email registration OTP",
+        "tags": ["Auth"]
+      }
+    },
     "/auth/register/verify": {
       "post": {
         "operationId": "AuthController_verifyEmailRegistration",
@@ -140,6 +171,101 @@
           }
         },
         "summary": "Login by Google",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ForgotPasswordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Send forgot password OTP",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/forgot-password/resend": {
+      "post": {
+        "operationId": "AuthController_resendForgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ForgotPasswordResendRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Resend forgot password OTP",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/forgot-password/verify": {
+      "post": {
+        "operationId": "AuthController_verifyForgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ForgotPasswordVerifyRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": { "data": { "$ref": "#/components/schemas/AuthLoginResponse" } }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify forgot password OTP and reset password",
         "tags": ["Auth"]
       }
     },
@@ -786,86 +912,6 @@
         "tags": ["CMS Prompts"]
       }
     },
-    "/cms/files/test-upload/public": {
-      "post": {
-        "operationId": "FileCmsController_uploadPublicFile",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": { "file": { "type": "string", "format": "binary" } }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    { "$ref": "#/components/schemas/RestResponse" },
-                    {
-                      "properties": {
-                        "data": { "$ref": "#/components/schemas/AdminTestUploadResponse" }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "security": [{ "admin-token": [] }],
-        "summary": "Test upload file to public bucket",
-        "tags": ["CMS Files"]
-      }
-    },
-    "/cms/files/test-upload/private": {
-      "post": {
-        "operationId": "FileCmsController_uploadPrivateFile",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": ["file"],
-                "properties": { "file": { "type": "string", "format": "binary" } }
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    { "$ref": "#/components/schemas/RestResponse" },
-                    {
-                      "properties": {
-                        "data": { "$ref": "#/components/schemas/AdminTestUploadResponse" }
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "security": [{ "admin-token": [] }],
-        "summary": "Test upload file to private bucket",
-        "tags": ["CMS Files"]
-      }
-    },
     "/files/{uuid}": {
       "get": {
         "operationId": "FileController_downloadPromptFile",
@@ -1323,6 +1369,407 @@
         "tags": ["CMS Labels"]
       }
     },
+    "/video-selectors": {
+      "get": {
+        "operationId": "VideoSelectorController_listVideoSelectors",
+        "parameters": [
+          {
+            "name": "X-Locale",
+            "in": "header",
+            "description": "Locale header. Defaults to en.",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "selector_type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by selector type",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/VideoSelectorResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "List video selectors",
+        "tags": ["VideoSelector"]
+      }
+    },
+    "/cms/video-selectors": {
+      "get": {
+        "operationId": "VideoSelectorCmsController_listVideoSelectors",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search selector code, name, or prompt",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "selector_type",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "string", "enum": ["STYLE", "MOVEMENT", "MOTION"] }
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "in": "query",
+            "description": "Filter by enabled status. Omit to include all statuses.",
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsVideoSelectorResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List video selectors",
+        "tags": ["CMS Video Selectors"]
+      },
+      "post": {
+        "operationId": "VideoSelectorCmsController_createVideoSelector",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["payload"],
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "description": "JSON string for video selector fields.",
+                    "example": "{\n  \"selector_type\": \"STYLE\",\n  \"code\": \"STYLE_001\",\n  \"prompt\": \"cinematic style\",\n  \"translations\": [\n    {\n      \"locale\": \"en\",\n      \"name\": \"Cinematic\"\n    },\n    {\n      \"locale\": \"zh-TW\",\n      \"name\": \"Cinematic\"\n    }\n  ],\n  \"enabled\": true\n}"
+                  },
+                  "cover": { "type": "string", "format": "binary" },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "STYLE only."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsVideoSelectorResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Create video selector",
+        "tags": ["CMS Video Selectors"]
+      }
+    },
+    "/cms/video-selectors/positions": {
+      "patch": {
+        "operationId": "VideoSelectorCmsController_updateVideoSelectorPositions",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CmsUpdateVideoSelectorPositionsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsVideoSelectorResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update video selector positions",
+        "tags": ["CMS Video Selectors"]
+      }
+    },
+    "/cms/video-selectors/{selectorType}/thumbnail": {
+      "get": {
+        "operationId": "VideoSelectorCmsController_getTypeThumbnail",
+        "parameters": [
+          { "name": "selectorType", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CmsVideoSelectorTypeThumbnailResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get video selector type global thumbnail",
+        "tags": ["CMS Video Selectors"]
+      },
+      "patch": {
+        "operationId": "VideoSelectorCmsController_updateTypeThumbnail",
+        "parameters": [
+          { "name": "selectorType", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": { "file": { "type": "string", "format": "binary" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CmsVideoSelectorTypeThumbnailResponse"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update video selector type global thumbnail",
+        "tags": ["CMS Video Selectors"]
+      },
+      "delete": {
+        "operationId": "VideoSelectorCmsController_deleteTypeThumbnail",
+        "parameters": [
+          { "name": "selectorType", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Delete video selector type global thumbnail",
+        "tags": ["CMS Video Selectors"]
+      }
+    },
+    "/cms/video-selectors/{id}": {
+      "patch": {
+        "operationId": "VideoSelectorCmsController_updateVideoSelector",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "description": "JSON string for video selector fields. Omit when only replacing files.",
+                    "example": "{\n  \"prompt\": \"cinematic style\",\n  \"translations\": [\n    {\n      \"locale\": \"en\",\n      \"name\": \"Cinematic\"\n    },\n    {\n      \"locale\": \"zh-TW\",\n      \"name\": \"Cinematic\"\n    }\n  ],\n  \"enabled\": true\n}"
+                  },
+                  "cover": { "type": "string", "format": "binary" },
+                  "thumbnail": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "STYLE only."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsVideoSelectorResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update video selector",
+        "tags": ["CMS Video Selectors"]
+      },
+      "get": {
+        "operationId": "VideoSelectorCmsController_getVideoSelector",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsVideoSelectorDetailResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get video selector by id",
+        "tags": ["CMS Video Selectors"]
+      },
+      "delete": {
+        "operationId": "VideoSelectorCmsController_deleteVideoSelector",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "type": "null", "nullable": true } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Delete video selector",
+        "tags": ["CMS Video Selectors"]
+      }
+    },
     "/cart": {
       "get": {
         "operationId": "CartController_getCartItems",
@@ -1500,6 +1947,38 @@
         "tags": ["Order"]
       }
     },
+    "/orders/checkout/session": {
+      "post": {
+        "operationId": "OrderController_syncOrderByCheckoutSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CheckoutSessionOrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    { "properties": { "data": { "$ref": "#/components/schemas/OrderResponse" } } }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "user-token": [] }],
+        "summary": "Sync and get order detail by Stripe Checkout Session ID",
+        "tags": ["Order"]
+      }
+    },
     "/orders/{uuid}": {
       "get": {
         "operationId": "OrderController_getOrder",
@@ -1524,6 +2003,87 @@
         "security": [{ "user-token": [] }],
         "summary": "Get order detail by UUID",
         "tags": ["Order"]
+      }
+    },
+    "/cms/orders": {
+      "get": {
+        "operationId": "OrderCmsController_listOrders",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search order UUID, display ID, or user UUID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "order_uuid",
+            "required": false,
+            "in": "query",
+            "description": "Order UUID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "display_id",
+            "required": false,
+            "in": "query",
+            "description": "Order display ID",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["PENDING", "PAID", "FAILED", "CANCELLED", "COMPLETED"]
+            }
+          },
+          {
+            "name": "user_uuid",
+            "required": false,
+            "in": "query",
+            "description": "User UUID",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsOrderResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List orders",
+        "tags": ["CMS Orders"]
       }
     },
     "/orders/webhook/stripe": {
@@ -1598,6 +2158,218 @@
         "summary": "Get current admin profile",
         "tags": ["CMS Admins"]
       }
+    },
+    "/webhooks/kling/{token}": {
+      "post": {
+        "operationId": "KlingWebhookController_handleCallback",
+        "parameters": [
+          { "name": "token", "required": true, "in": "path", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "" } },
+        "summary": "Kling webhook receiver",
+        "tags": ["KlingWebhook"]
+      }
+    },
+    "/cms/ai-video-models": {
+      "get": {
+        "operationId": "AiVideoModelCmsController_listAiVideoModels",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 1, "type": "number" }
+          },
+          {
+            "name": "page_size",
+            "required": false,
+            "in": "query",
+            "schema": { "default": 20, "type": "number" }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search provider, model, name, or description",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "provider",
+            "required": false,
+            "in": "query",
+            "description": "Filter by provider, e.g. KLING",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "enabled",
+            "required": false,
+            "in": "query",
+            "description": "Filter by enabled status. Omit to include all statuses.",
+            "schema": { "type": "boolean" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/PaginatedResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsAiVideoModelResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List AI video models",
+        "tags": ["CMS AI Video Models"]
+      }
+    },
+    "/cms/ai-video-models/enabled": {
+      "get": {
+        "operationId": "AiVideoModelCmsController_listEnabledAiVideoModels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsAiVideoModelResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "List enabled AI video models",
+        "tags": ["CMS AI Video Models"]
+      }
+    },
+    "/cms/ai-video-models/positions": {
+      "patch": {
+        "operationId": "AiVideoModelCmsController_updateAiVideoModelPositions",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CmsUpdateAiVideoModelPositionsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/CmsAiVideoModelResponse" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update AI video model positions",
+        "tags": ["CMS AI Video Models"]
+      }
+    },
+    "/cms/ai-video-models/{id}": {
+      "get": {
+        "operationId": "AiVideoModelCmsController_getAiVideoModel",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsAiVideoModelResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Get AI video model by id",
+        "tags": ["CMS AI Video Models"]
+      },
+      "patch": {
+        "operationId": "AiVideoModelCmsController_updateAiVideoModel",
+        "parameters": [
+          { "name": "id", "required": true, "in": "path", "schema": { "type": "number" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AdminUpdateAiVideoModelRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/RestResponse" },
+                    {
+                      "properties": {
+                        "data": { "$ref": "#/components/schemas/CmsAiVideoModelResponse" }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [{ "admin-token": [] }],
+        "summary": "Update AI video model settings",
+        "tags": ["CMS AI Video Models"]
+      }
     }
   },
   "info": { "title": "GaryTu AI API", "description": "", "version": "1.0", "contact": {} },
@@ -1629,10 +2401,14 @@
         "type": "object",
         "properties": {
           "email": { "type": "string", "example": "test@gmail.com" },
-          "password": { "type": "string", "example": "Aa123456@" },
-          "name": { "type": "string", "description": "Nickname", "maxLength": 64, "example": "Tom" }
+          "password": { "type": "string", "example": "Aa123456@" }
         },
         "required": ["email", "password"]
+      },
+      "EmailRegisterResendRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "example": "test@gmail.com" } },
+        "required": ["email"]
       },
       "EmailRegisterVerifyRequest": {
         "type": "object",
@@ -1659,6 +2435,25 @@
         "type": "object",
         "properties": { "token": { "type": "string", "example": "Google credential (id token)" } },
         "required": ["token"]
+      },
+      "ForgotPasswordRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "example": "test@gmail.com" } },
+        "required": ["email"]
+      },
+      "ForgotPasswordResendRequest": {
+        "type": "object",
+        "properties": { "email": { "type": "string", "example": "test@gmail.com" } },
+        "required": ["email"]
+      },
+      "ForgotPasswordVerifyRequest": {
+        "type": "object",
+        "properties": {
+          "email": { "type": "string", "example": "test@gmail.com" },
+          "otp": { "type": "string", "example": "123456" },
+          "new_password": { "type": "string", "example": "Aa123456@" }
+        },
+        "required": ["email", "otp", "new_password"]
       },
       "UserInfoResponse": {
         "type": "object",
@@ -1901,7 +2696,8 @@
           "url": { "type": "string" },
           "thumbnail_url": { "type": "object", "nullable": true },
           "created_at": { "type": "object", "nullable": true },
-          "id": { "type": "string" }
+          "id": { "type": "string" },
+          "thumbnail_id": { "type": "object", "nullable": true }
         },
         "required": ["uuid", "category", "file_type", "position", "url", "id"]
       },
@@ -2083,20 +2879,26 @@
         },
         "required": ["files"]
       },
-      "AdminTestUploadResponse": {
-        "type": "object",
-        "properties": {
-          "bucket": { "type": "string" },
-          "key": { "type": "string" },
-          "url": { "type": "string" },
-          "etag": { "type": "object", "nullable": true }
-        },
-        "required": ["bucket", "key", "url", "etag"]
-      },
       "PublicNamedItemResponse": {
         "type": "object",
         "properties": { "code": { "type": "string" }, "name": { "type": "string" } },
         "required": ["code", "name"]
+      },
+      "VideoSelectorResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "selector_type": { "type": "string" },
+          "code": { "type": "string" },
+          "name": { "type": "string" },
+          "prompt": { "type": "string" },
+          "position": { "type": "number" },
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/PromptFileResponse" }]
+          }
+        },
+        "required": ["uuid", "selector_type", "code", "name", "prompt", "position"]
       },
       "WebConfigResponse": {
         "type": "object",
@@ -2108,9 +2910,13 @@
           "prompt_categories": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/PublicNamedItemResponse" }
+          },
+          "video_selectors": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/VideoSelectorResponse" }
           }
         },
-        "required": ["prompt_labels", "prompt_categories"]
+        "required": ["prompt_labels", "prompt_categories", "video_selectors"]
       },
       "AdminCategoryResponse": {
         "type": "object",
@@ -2196,6 +3002,120 @@
           "enabled": { "type": "boolean" }
         }
       },
+      "CmsVideoSelectorResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "selector_type": { "type": "string" },
+          "code": { "type": "string" },
+          "prompt": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          },
+          "enabled": { "type": "boolean" },
+          "position": { "type": "number" },
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "selector_type",
+          "code",
+          "prompt",
+          "translations",
+          "enabled",
+          "position",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CmsVideoSelectorPositionItemRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number", "example": 1 },
+          "position": { "type": "number", "example": 0 }
+        },
+        "required": ["id", "position"]
+      },
+      "CmsUpdateVideoSelectorPositionsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "default": [],
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsVideoSelectorPositionItemRequest" }
+          }
+        }
+      },
+      "CmsVideoSelectorThumbnailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "category": { "type": "string" },
+          "file_type": { "type": "string" },
+          "position": { "type": "number" },
+          "url": { "type": "string" },
+          "created_at": { "type": "object", "nullable": true }
+        },
+        "required": ["id", "uuid", "category", "file_type", "position", "url"]
+      },
+      "CmsVideoSelectorTypeThumbnailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "selector_type": { "type": "string" },
+          "has_global_thumbnail": { "type": "boolean" },
+          "thumbnail": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsVideoSelectorThumbnailResponse" }]
+          },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": ["id", "selector_type", "has_global_thumbnail", "created_at", "updated_at"]
+      },
+      "CmsVideoSelectorDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "selector_type": { "type": "string" },
+          "code": { "type": "string" },
+          "prompt": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdminNameTranslationResponse" }
+          },
+          "enabled": { "type": "boolean" },
+          "position": { "type": "number" },
+          "cover": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsPromptFileResponse" }]
+          },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "selector_type",
+          "code",
+          "prompt",
+          "translations",
+          "enabled",
+          "position",
+          "created_at",
+          "updated_at"
+        ]
+      },
       "CartItemResponse": {
         "type": "object",
         "properties": {
@@ -2229,6 +3149,7 @@
         "type": "object",
         "properties": {
           "uuid": { "type": "string" },
+          "display_id": { "type": "string", "example": "ORD-260505-K8P2M9" },
           "status": { "type": "string" },
           "amount": { "type": "number" },
           "currency": { "type": "string" },
@@ -2242,7 +3163,82 @@
             "items": { "$ref": "#/components/schemas/OrderLineItemResponse" }
           }
         },
-        "required": ["uuid", "status", "amount", "currency", "created_at", "items"]
+        "required": ["uuid", "display_id", "status", "amount", "currency", "created_at", "items"]
+      },
+      "CheckoutSessionOrderRequest": {
+        "type": "object",
+        "properties": { "session_id": { "type": "string", "example": "cs_test_xxx" } },
+        "required": ["session_id"]
+      },
+      "CmsOrderUserResponse": {
+        "type": "object",
+        "properties": {
+          "uuid": { "type": "string" },
+          "email": { "type": "object", "nullable": true },
+          "name": { "type": "object", "nullable": true }
+        },
+        "required": ["uuid"]
+      },
+      "CmsOrderPaymentResponse": {
+        "type": "object",
+        "properties": {
+          "provider": { "type": "string" },
+          "status": { "type": "string" },
+          "provider_payment_id": { "type": "string" },
+          "provider_session_id": { "type": "object", "nullable": true },
+          "checkout_url": { "type": "object", "nullable": true },
+          "expires_at": { "type": "object", "nullable": true },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": ["provider", "status", "provider_payment_id", "created_at", "updated_at"]
+      },
+      "CmsOrderItemResponse": {
+        "type": "object",
+        "properties": {
+          "item_type": { "type": "string" },
+          "item_id": { "type": "string" },
+          "quantity": { "type": "number" },
+          "unit_price": { "type": "number" },
+          "amount": { "type": "number" },
+          "created_at": { "format": "date-time", "type": "string" }
+        },
+        "required": ["item_type", "item_id", "quantity", "unit_price", "amount", "created_at"]
+      },
+      "CmsOrderResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "display_id": { "type": "string" },
+          "status": { "type": "string" },
+          "amount": { "type": "number" },
+          "currency": { "type": "string" },
+          "fingerprint": { "type": "object", "nullable": true },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" },
+          "user": { "$ref": "#/components/schemas/CmsOrderUserResponse" },
+          "payment": {
+            "nullable": true,
+            "allOf": [{ "$ref": "#/components/schemas/CmsOrderPaymentResponse" }]
+          },
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsOrderItemResponse" }
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "display_id",
+          "status",
+          "amount",
+          "currency",
+          "created_at",
+          "updated_at",
+          "user",
+          "items"
+        ]
       },
       "AdminLoginResponse": {
         "type": "object",
@@ -2267,6 +3263,89 @@
           "enabled": { "type": "boolean" }
         },
         "required": ["id", "username", "name", "role", "enabled"]
+      },
+      "AdminAiVideoModelDescriptionTranslationResponse": {
+        "type": "object",
+        "properties": {
+          "locale": { "type": "string" },
+          "description": { "type": "object", "nullable": true }
+        },
+        "required": ["locale"]
+      },
+      "CmsAiVideoModelResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "uuid": { "type": "string" },
+          "provider": { "type": "string" },
+          "model": { "type": "string" },
+          "name": { "type": "string" },
+          "translations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAiVideoModelDescriptionTranslationResponse"
+            }
+          },
+          "enabled": { "type": "boolean" },
+          "position": { "type": "number" },
+          "created_at": { "format": "date-time", "type": "string" },
+          "updated_at": { "format": "date-time", "type": "string" }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "provider",
+          "model",
+          "name",
+          "translations",
+          "enabled",
+          "position",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "CmsAiVideoModelPositionItemRequest": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "number", "example": 1 },
+          "position": { "type": "number", "example": 0 }
+        },
+        "required": ["id", "position"]
+      },
+      "CmsUpdateAiVideoModelPositionsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "default": [],
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CmsAiVideoModelPositionItemRequest" }
+          }
+        }
+      },
+      "AdminAiVideoModelDescriptionTranslationRequest": {
+        "type": "object",
+        "properties": {
+          "locale": { "type": "string", "example": "en" },
+          "description": {
+            "type": "object",
+            "example": "A production video model for cinematic output."
+          }
+        },
+        "required": ["locale"]
+      },
+      "AdminUpdateAiVideoModelRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "example": "Kling v1.6" },
+          "translations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminAiVideoModelDescriptionTranslationRequest"
+            }
+          },
+          "enabled": { "type": "boolean" },
+          "position": { "type": "number", "example": 0 }
+        }
       }
     }
   }
