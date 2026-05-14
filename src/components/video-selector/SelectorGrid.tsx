@@ -3,12 +3,26 @@
 import { useEffect, useState } from "react";
 import { DragDropProvider } from "@dnd-kit/react";
 import { useSortable, isSortableOperation } from "@dnd-kit/react/sortable";
-import { App, Button, Card, Form, Input, Modal, Upload } from "antd";
+import { App, Button, Card, Form, Input, Modal, Switch, Upload } from "antd";
 import { DeleteOutlined, EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import {
+  getVideoSelectors,
+  createVideoSelector,
+  updateVideoSelector,
+  deleteVideoSelector,
+  updateVideoSelectorPositions,
+} from "@/@core/apis/videoSelector";
+import type { VideoSelectorType } from "@/@core/types/videoSelector";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type SelectorType = "style" | "movement" | "motion";
+
+const TYPE_MAP: Record<SelectorType, VideoSelectorType> = {
+  style: "STYLE",
+  movement: "MOVEMENT",
+  motion: "MOTION",
+};
 
 interface SelectorItem {
   id: string;
@@ -16,80 +30,53 @@ interface SelectorItem {
   nameZhTW: string;
   nameEn: string;
   prompt: string;
-  exampleVideoFile?: File;
-  exampleVideoUrl?: string;
-  exampleVideoCoverFile?: File;
-  exampleVideoCoverUrl?: string;
+  enabled: boolean;
+  coverUrl?: string | null;
+  thumbnailUrl?: string | null;
 }
 
 interface SelectorGridProps {
   type: SelectorType;
-  initialData?: SelectorItem[];
 }
-
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_DATA: Record<SelectorType, SelectorItem[]> = {
-  style: [
-    {
-      id: "s1",
-      code: "STYLE_001",
-      nameZhTW: "電影感",
-      nameEn: "Cinematic",
-      prompt: "cinematic style",
-    },
-    { id: "s2", code: "STYLE_002", nameZhTW: "動畫", nameEn: "Animated", prompt: "animated style" },
-    {
-      id: "s3",
-      code: "STYLE_003",
-      nameZhTW: "紀錄片",
-      nameEn: "Documentary",
-      prompt: "documentary style",
-    },
-  ],
-  movement: [
-    { id: "m1", code: "MOVEMENT_001", nameZhTW: "平移", nameEn: "Pan", prompt: "camera pan" },
-    { id: "m2", code: "MOVEMENT_002", nameZhTW: "推拉", nameEn: "Dolly", prompt: "dolly shot" },
-    {
-      id: "m3",
-      code: "MOVEMENT_003",
-      nameZhTW: "跟拍",
-      nameEn: "Tracking",
-      prompt: "tracking shot",
-    },
-  ],
-  motion: [
-    {
-      id: "mo1",
-      code: "MOTION_001",
-      nameZhTW: "慢動作",
-      nameEn: "Slow Motion",
-      prompt: "slow motion",
-    },
-    {
-      id: "mo2",
-      code: "MOTION_002",
-      nameZhTW: "快動作",
-      nameEn: "Fast Motion",
-      prompt: "fast motion",
-    },
-    {
-      id: "mo3",
-      code: "MOTION_003",
-      nameZhTW: "定格",
-      nameEn: "Freeze Frame",
-      prompt: "freeze frame",
-    },
-  ],
-};
 
 // ─── SelectorGrid ─────────────────────────────────────────────────────────────
 
-export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
-  const [items, setItems] = useState<SelectorItem[]>(initialData ?? MOCK_DATA[type]);
+export default function SelectorGrid({ type }: SelectorGridProps) {
+  const { message } = App.useApp();
+  const [items, setItems] = useState<SelectorItem[]>([]);
+  const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState<SelectorItem | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [deletingItem, setDeletingItem] = useState<SelectorItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  async function fetchItems() {
+    setLoading(true);
+    try {
+      const res = await getVideoSelectors({ selector_type: TYPE_MAP[type], page_size: 100 });
+      setItems(
+        res.data.map((r) => ({
+          id: r.id,
+          code: r.code,
+          nameZhTW: r.translations.find((t) => t.locale === "zh-TW")?.name ?? "",
+          nameEn: r.translations.find((t) => t.locale === "en")?.name ?? "",
+          prompt: r.prompt,
+          enabled: r.enabled,
+          coverUrl: r.cover?.url ?? null,
+          thumbnailUrl: r.cover?.thumbnail_url ?? null,
+        }))
+      );
+    } catch {
+      message.error("載入失敗");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type]);
 
   function openAdd() {
     setEditingItem(null);
@@ -105,23 +92,70 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
     setDeletingItem(item);
   }
 
-  function handleModalSave(values: Omit<SelectorItem, "id">) {
+  async function handleModalSave(
+    values: Omit<SelectorItem, "id" | "coverUrl" | "thumbnailUrl">,
+    files: { cover?: File; thumbnail?: File }
+  ) {
     if (editingItem) {
-      setItems((prev) => prev.map((it) => (it.id === editingItem.id ? { ...it, ...values } : it)));
+      await updateVideoSelector(
+        Number(editingItem.id),
+        {
+          prompt: values.prompt,
+          translations: [
+            { locale: "zh-TW", name: values.nameZhTW },
+            { locale: "en", name: values.nameEn },
+          ],
+          enabled: values.enabled,
+        },
+        files
+      );
     } else {
-      setItems((prev) => [...prev, { ...values, id: `new_${Date.now()}` }]);
+      await createVideoSelector(
+        {
+          selector_type: TYPE_MAP[type],
+          code: values.code,
+          prompt: values.prompt,
+          translations: [
+            { locale: "zh-TW", name: values.nameZhTW },
+            { locale: "en", name: values.nameEn },
+          ],
+          enabled: values.enabled,
+        },
+        files
+      );
     }
     setModalOpen(false);
+    fetchItems();
   }
 
-  function handleConfirmDelete() {
+  async function handleConfirmDelete() {
     if (!deletingItem) return;
-    setItems((prev) => prev.filter((it) => it.id !== deletingItem.id));
-    setDeletingItem(null);
+    setDeleteLoading(true);
+    try {
+      await deleteVideoSelector(Number(deletingItem.id));
+      setDeletingItem(null);
+      fetchItems();
+    } catch {
+      message.error("刪除失敗");
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
+
+  async function handleDragEnd(newItems: SelectorItem[]) {
+    setItems(newItems);
+    try {
+      await updateVideoSelectorPositions({
+        items: newItems.map((item, index) => ({ id: Number(item.id), position: index })),
+      });
+    } catch {
+      message.error("排序更新失敗");
+      fetchItems();
+    }
   }
 
   return (
-    <Card>
+    <Card loading={loading}>
       <div className="flex justify-end mb-4">
         <Button icon={<PlusOutlined />} type="primary" onClick={openAdd}>
           新增
@@ -137,11 +171,9 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
           const from = source.sortable.initialIndex;
           const to = target.sortable.index;
           if (from === to) return;
-          setItems((prev) => {
-            const next = [...prev];
-            next.splice(to < 0 ? next.length + to : to, 0, next.splice(from, 1)[0]);
-            return next;
-          });
+          const next = [...items];
+          next.splice(to < 0 ? next.length + to : to, 0, next.splice(from, 1)[0]);
+          handleDragEnd(next);
         }}
       >
         <div className="grid grid-cols-5 gap-4">
@@ -169,6 +201,7 @@ export default function SelectorGrid({ type, initialData }: SelectorGridProps) {
         title="確認刪除"
         open={!!deletingItem}
         onOk={handleConfirmDelete}
+        confirmLoading={deleteLoading}
         onCancel={() => setDeletingItem(null)}
         okText="確認刪除"
         okButtonProps={{ danger: true }}
@@ -215,6 +248,9 @@ function SortableGridItem({ item, index, onEdit, onDelete }: SortableGridItemPro
       </div>
       <div className="font-mono text-sm font-bold pr-14">{item.code}</div>
       <div className="text-xs text-gray-600 mt-1">{item.nameZhTW}</div>
+      <div className={`text-xs mt-1 ${item.enabled ? "text-green-500" : "text-gray-400"}`}>
+        {item.enabled ? "啟用" : "停用"}
+      </div>
     </div>
   );
 }
@@ -226,16 +262,20 @@ interface ItemModalProps {
   type: SelectorType;
   editing: SelectorItem | null;
   onClose: () => void;
-  onSave: (values: Omit<SelectorItem, "id">) => void;
+  onSave: (
+    values: Omit<SelectorItem, "id" | "coverUrl" | "thumbnailUrl">,
+    files: { cover?: File; thumbnail?: File }
+  ) => Promise<void>;
 }
 
 function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
   const { message } = App.useApp();
   const [form] = Form.useForm();
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -245,40 +285,44 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
         nameZhTW: editing.nameZhTW,
         nameEn: editing.nameEn,
         prompt: editing.prompt,
+        enabled: editing.enabled,
       });
-      setVideoFile(editing.exampleVideoFile ?? null);
-      setVideoPreview(
-        editing.exampleVideoFile
-          ? URL.createObjectURL(editing.exampleVideoFile)
-          : (editing.exampleVideoUrl ?? null)
-      );
-      setCoverFile(editing.exampleVideoCoverFile ?? null);
-      setCoverPreview(
-        editing.exampleVideoCoverFile
-          ? URL.createObjectURL(editing.exampleVideoCoverFile)
-          : (editing.exampleVideoCoverUrl ?? null)
-      );
+      setCoverFile(null);
+      setCoverPreview(editing.coverUrl ?? null);
+      setThumbnailFile(null);
+      setThumbnailPreview(editing.thumbnailUrl ?? null);
     } else {
       form.resetFields();
-      setVideoFile(null);
-      setVideoPreview(null);
+      form.setFieldValue("enabled", true);
       setCoverFile(null);
       setCoverPreview(null);
+      setThumbnailFile(null);
+      setThumbnailPreview(null);
     }
   }, [open, editing, form]);
 
   async function handleOk() {
     try {
       const values = await form.validateFields();
-      onSave({
-        ...values,
-        exampleVideoFile: videoFile ?? undefined,
-        exampleVideoUrl: !videoFile ? (editing?.exampleVideoUrl ?? undefined) : undefined,
-        exampleVideoCoverFile: coverFile ?? undefined,
-        exampleVideoCoverUrl: !coverFile ? (editing?.exampleVideoCoverUrl ?? undefined) : undefined,
-      });
-    } catch {
-      message.error("請填寫必填欄位");
+      setSaving(true);
+      await onSave(
+        {
+          code: values.code,
+          nameZhTW: values.nameZhTW ?? "",
+          nameEn: values.nameEn ?? "",
+          prompt: values.prompt ?? "",
+          enabled: values.enabled ?? true,
+        },
+        {
+          cover: coverFile ?? undefined,
+          thumbnail: thumbnailFile ?? undefined,
+        }
+      );
+    } catch (err: unknown) {
+      if (err && typeof err === "object" && "errorFields" in err) return;
+      message.error("儲存失敗");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -288,6 +332,7 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
       open={open}
       onCancel={onClose}
       onOk={handleOk}
+      confirmLoading={saving}
       okText="儲存"
       cancelText="取消"
       destroyOnHidden
@@ -299,7 +344,7 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
           name="code"
           rules={[{ required: true, message: "請輸入代碼" }]}
         >
-          <Input placeholder="例：STYLE_001" />
+          <Input placeholder="例：STYLE_001" disabled={!!editing} />
         </Form.Item>
 
         <Form.Item label="名稱（zh-TW）" name="nameZhTW">
@@ -314,22 +359,26 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
           <Input.TextArea rows={3} placeholder="輸入 prompt" />
         </Form.Item>
 
-        <Form.Item label="Example Video">
+        <Form.Item label="啟用" name="enabled" valuePropName="checked">
+          <Switch />
+        </Form.Item>
+
+        <Form.Item label="Cover">
           <Upload
             accept="video/*"
             showUploadList={false}
             beforeUpload={(file) => {
-              setVideoFile(file);
-              setVideoPreview(URL.createObjectURL(file));
+              setCoverFile(file);
+              setCoverPreview(URL.createObjectURL(file));
               return false;
             }}
           >
             <Button icon={<UploadOutlined />}>選擇影片</Button>
           </Upload>
-          {videoPreview && (
+          {coverPreview && (
             <div className="mt-2">
               <video
-                src={videoPreview}
+                src={coverPreview}
                 controls
                 className="w-full max-h-[160px] rounded object-contain bg-black"
               />
@@ -338,8 +387,8 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
                 danger
                 className="mt-1"
                 onClick={() => {
-                  setVideoFile(null);
-                  setVideoPreview(null);
+                  setCoverFile(null);
+                  setCoverPreview(null);
                 }}
               >
                 移除
@@ -349,23 +398,23 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
         </Form.Item>
 
         {type === "style" && (
-          <Form.Item label="Example Video Thumbnail">
+          <Form.Item label="Thumbnail（STYLE 專用）">
             <Upload
               accept="image/*"
               showUploadList={false}
               beforeUpload={(file) => {
-                setCoverFile(file);
-                setCoverPreview(URL.createObjectURL(file));
+                setThumbnailFile(file);
+                setThumbnailPreview(URL.createObjectURL(file));
                 return false;
               }}
             >
-              <Button icon={<UploadOutlined />}>選擇封面圖</Button>
+              <Button icon={<UploadOutlined />}>選擇 Thumbnail</Button>
             </Upload>
-            {coverPreview && (
+            {thumbnailPreview && (
               <div className="mt-2">
                 <img
-                  src={coverPreview}
-                  alt="cover preview"
+                  src={thumbnailPreview}
+                  alt="thumbnail preview"
                   className="w-full max-h-[160px] rounded object-contain border"
                 />
                 <Button
@@ -373,8 +422,8 @@ function ItemModal({ open, type, editing, onClose, onSave }: ItemModalProps) {
                   danger
                   className="mt-1"
                   onClick={() => {
-                    setCoverFile(null);
-                    setCoverPreview(null);
+                    setThumbnailFile(null);
+                    setThumbnailPreview(null);
                   }}
                 >
                   移除
